@@ -127,22 +127,76 @@
   animation: mascot-eye-blink 2.25s ease-in-out infinite;
 }
 
+@keyframes mascot-happy-bob {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -5px, 0) scale(1.04);
+  }
+}
+
+.mascot-happy-bob {
+  transform-origin: 50% 60%;
+  animation: mascot-happy-bob 2.4s ease-in-out infinite;
+  will-change: transform;
+}
+
 @keyframes quiz-vector-beams-work-impact {
   0%,
   100% {
-    opacity: 0.88;
-    transform: scale(1);
+    opacity: 0.78;
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
   }
   50% {
     opacity: 1;
-    transform: scale(1.045);
+    transform: translate3d(0, -10px, 0) scale(1.09) rotate(0.35deg);
   }
 }
 
 .quiz-vector-beams-work-impact {
   transform-origin: 50% 12%;
-  animation: quiz-vector-beams-work-impact 10s ease-in-out infinite;
+  animation: quiz-vector-beams-work-impact 6.5s ease-in-out infinite;
   will-change: transform, opacity;
+}
+
+/* Center-pinned variant: radial hub ≈ (379, 1062) → 50% / ~65% in 758×1634 viewBox */
+.quiz-vector-beams-work-impact--center {
+  transform-origin: 50% 65%;
+}
+
+/* Top-anchored hero (`top-[-883px]`): pulse reads from upper beam convergence, not screen center */
+.quiz-vector-beams-work-impact--default {
+  transform-origin: 50% 0%;
+}
+
+@keyframes quiz-calc-check-in {
+  from {
+    transform: scale(0.55);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.quiz-calc-check-reveal {
+  animation: quiz-calc-check-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes quiz-calc-review-enter {
+  from {
+    opacity: 0;
+    transform: translateX(var(--quiz-review-slide, 16px));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.quiz-calc-review-enter {
+  animation: quiz-calc-review-enter 0.45s cubic-bezier(0.33, 1, 0.68, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -158,7 +212,8 @@
   }
 
   .mascot-eyes-look,
-  .mascot-eyes-blink {
+  .mascot-eyes-blink,
+  .mascot-happy-bob {
     animation: none;
   }
 
@@ -167,6 +222,61 @@
     opacity: 1;
     transform: none;
   }
+
+  .quiz-calc-check-reveal {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .quiz-calc-review-enter {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .quiz-calc-step-spinner {
+    animation: none !important;
+  }
+
+  /* Calculating-screen confetti — hide entirely when reduced motion is requested */
+  .quiz-calculating-confetti-overlay {
+    display: none !important;
+  }
+}
+
+/* Confetti burst on “Preparing your plan” completion — disabled via block above when reduced motion */
+@keyframes quiz-confetti-burst {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate3d(0, 0, 1, 0deg)
+      scale3d(var(--qz-cf-scale, 1), var(--qz-cf-scale-y, 1), 1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(
+        var(--qz-cf-dx, 0px),
+        var(--qz-cf-dy, -120px),
+        0
+      )
+      rotate3d(0, 0, 1, var(--qz-cf-rot, 360deg))
+      scale3d(0.35, 0.35, 1);
+  }
+}
+
+.quiz-confetti-piece {
+  position: absolute;
+  left: var(--qz-cf-left, 50%);
+  top: var(--qz-cf-top, 40%);
+  width: var(--qz-cf-w, 8px);
+  height: var(--qz-cf-h, 12px);
+  margin-left: var(--qz-cf-ml, -4px);
+  margin-top: var(--qz-cf-mt, -6px);
+  border-radius: 1px;
+  background: var(--qz-cf-color, #05a8ff);
+  opacity: 0;
+  animation: quiz-confetti-burst var(--qz-cf-dur, 0.95s)
+    cubic-bezier(0.22, 1, 0.36, 1) var(--qz-cf-delay, 0s) both;
 }
 
 @theme inline {

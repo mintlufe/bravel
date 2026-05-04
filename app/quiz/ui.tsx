@@ -96,8 +96,9 @@ export function QuizFrame({
 }
 
 type VectorBeamsBackgroundProps = {
-  /** `workImpact` — centered beam fan for work-field impact hero (Figma). */
-  variant?: "default" | "workImpact";
+  /** `workImpact` — beam fan for work-field impact hero (Figma). */
+  /** `center` — same artwork; radial origin `translate(379 1062)` pinned to screen center (summary / referral). */
+  variant?: "default" | "workImpact" | "center";
 };
 
 /** Figma `VectorBeams` */
@@ -126,13 +127,24 @@ export function VectorBeamsBackground({
     </radialGradient>
   );
 
+  /** Radial hub in artwork ≈ (379, 1062) in 758×1634 viewBox — align that point with viewport center. */
   const positionClass =
-    variant === "workImpact"
-      ? "pointer-events-none absolute left-1/2 top-[-73.7rem] z-0 h-[1634px] w-[758px] -translate-x-1/2"
-      : "pointer-events-none absolute left-1/2 top-[-883px] z-0 h-[1634px] w-[758px] -translate-x-1/2";
+    variant === "center"
+      ? "pointer-events-none absolute left-[calc(50%-379px)] top-[calc(50%-1062px)] z-0 h-[1634px] w-[758px]"
+      : variant === "workImpact"
+        ? "pointer-events-none absolute left-1/2 top-[-73.7rem] z-0 h-[1634px] w-[758px] -translate-x-1/2"
+        : "pointer-events-none absolute left-1/2 top-[-883px] z-0 h-[1634px] w-[758px] -translate-x-1/2";
 
-  const beamsMotionClass =
-    variant === "workImpact" ? "quiz-vector-beams-work-impact" : "";
+  const beamsMotionClass = [
+    "quiz-vector-beams-work-impact",
+    variant === "center"
+      ? "quiz-vector-beams-work-impact--center"
+      : variant === "default"
+        ? "quiz-vector-beams-work-impact--default"
+        : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div className={positionClass} aria-hidden>
@@ -176,18 +188,28 @@ export function VectorBeamsBackground({
   );
 }
 
+type SheetBlackButtonProps = PrimaryButtonProps & {
+  /** Referral “link copied” — green `#18C362`, white label */
+  tone?: "default" | "success";
+};
+
 /** Teaser sheet — `#191a1f` */
 export function SheetBlackButton({
   children,
   disabled,
   onClick,
-}: PrimaryButtonProps) {
+  tone = "default",
+}: SheetBlackButtonProps) {
   return (
     <button
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className="quiz-transition-interactive flex h-14 w-full items-center justify-center rounded-2xl bg-[#191a1f] px-8 py-3 text-[16px] font-semibold leading-[18px] tracking-[-0.32px] text-white hover:bg-[#25262e] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+      className={`quiz-transition-interactive flex h-14 w-full items-center justify-center rounded-2xl px-8 py-3 text-[16px] font-semibold leading-[18px] tracking-[-0.32px] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 ${
+        tone === "success"
+          ? "bg-[#18C362] text-white hover:bg-[#15a856]"
+          : "bg-[#191a1f] text-white hover:bg-[#25262e]"
+      }`}
     >
       {children}
     </button>
@@ -289,7 +311,7 @@ type MascotProps = {
 export function Mascot({ eyes = "default" }: MascotProps) {
   if (eyes === "happy") {
     return (
-      <div className="relative size-24 shrink-0 overflow-visible">
+      <div className="mascot-happy-bob relative size-24 shrink-0 overflow-visible">
         <MascotHappySpriteSvg className="block size-full max-h-none max-w-none" />
       </div>
     );

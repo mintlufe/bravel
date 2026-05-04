@@ -107,6 +107,17 @@ export type QuizStep =
 /** Post-start steps only (matches progress bar length). */
 export const QUIZ_TOTAL = 21;
 
+/** Exact copy — used by {@link SummaryLineScreen} for accent highlights. */
+export const SUMMARY_HEADLINE_PERSONALIZED =
+  "we’ve created a personalized plan" as const;
+export const SUMMARY_HEADLINE_FLUENT =
+  "designed to help your English become more fluent" as const;
+export const SUMMARY_HEADLINE_MINUTES = "in just\n5 minutes a day" as const;
+/** First summary card (“Based on / your answers”) — ambient audio starts here. */
+export const SUMMARY_HEADLINE_BASED_ON = "Based on\nyour answers" as const;
+/** Last summary card before email — ambient audio fades out here (before the email step). */
+export const SUMMARY_HEADLINE_GET_STARTED = "Let\u2019s get started!" as const;
+
 export const steps: QuizStep[] = [
   {
     kind: "start",
@@ -278,7 +289,7 @@ export const steps: QuizStep[] = [
     variant: "table",
     progress: 13,
     total: QUIZ_TOTAL,
-    title: "Why AI practice fits real life better",
+    title: "Why AI practice fits\nreal life better",
     ctaLabel: "Let’s go!",
   },
   { kind: "calculating", progress: 14, total: QUIZ_TOTAL },
@@ -286,32 +297,37 @@ export const steps: QuizStep[] = [
     kind: "summary",
     progress: 15,
     total: QUIZ_TOTAL,
-    headline: "Based on\nyour answers",
+    headline: SUMMARY_HEADLINE_BASED_ON,
   },
   {
     kind: "summary",
     progress: 16,
     total: QUIZ_TOTAL,
-    headline: "we’ve created a personalized plan",
+    headline: SUMMARY_HEADLINE_PERSONALIZED,
   },
   {
     kind: "summary",
     progress: 17,
     total: QUIZ_TOTAL,
-    headline: "designed to help your English become more fluent",
+    headline: SUMMARY_HEADLINE_FLUENT,
   },
   {
     kind: "summary",
     progress: 18,
     total: QUIZ_TOTAL,
-    headline: "in just\n5 minutes a day",
+    headline: SUMMARY_HEADLINE_MINUTES,
   },
   {
     kind: "summary",
     progress: 19,
     total: QUIZ_TOTAL,
-    headline: "Let’s get started!",
+    headline: SUMMARY_HEADLINE_GET_STARTED,
   },
   { kind: "email", progress: 20, total: QUIZ_TOTAL },
   { kind: "referral", progress: 21, total: QUIZ_TOTAL },
 ];
+
+/** Index of the calculating step (open `/quiz?loading=stay` to inspect without redirect). */
+export const QUIZ_CALCULATING_STEP_INDEX = steps.findIndex(
+  (s) => s.kind === "calculating",
+);

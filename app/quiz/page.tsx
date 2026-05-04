@@ -10,7 +10,11 @@ import {
   useState,
 } from "react";
 import type { QuizStep } from "./steps";
-import { steps } from "./steps";
+import {
+  QUIZ_CALCULATING_STEP_INDEX,
+  SUMMARY_HEADLINE_GET_STARTED,
+  steps,
+} from "./steps";
 import {
   CheckboxRow,
   Mascot,
@@ -44,6 +48,43 @@ import {
   WORK_IMPACT_FALLBACK,
 } from "./work-impact-copy";
 import { getPeopleTeaserCopy } from "./people-teaser-copy";
+
+/** Default text for “Copy invite link” on the referral screen. Override with `NEXT_PUBLIC_REFERRAL_INVITE_URL`. */
+const REFERRAL_INVITE_FALLBACK_URL =
+  "https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1";
+
+/** Ambient choir from first summary (“Based on…”) through the second-to-last summary; fades on last summary before email — `public/quiz-assets/angel-choir-463220.mp3`. */
+const QUIZ_SUMMARY_AMBIENT_SRC = "/quiz-assets/angel-choir-463220.mp3";
+const QUIZ_SUMMARY_AMBIENT_VOLUME = 0.42;
+const QUIZ_SUMMARY_AMBIENT_FADE_OUT_MS = 1400;
+
+/** Ease-out cubic fade between two volumes; returns cancel (stops animation without calling `onComplete`). */
+function fadeAudioVolume(
+  audio: HTMLAudioElement,
+  fromVol: number,
+  toVol: number,
+  durationMs: number,
+  onComplete: () => void,
+): () => void {
+  const start = performance.now();
+  let cancelled = false;
+  const step = (now: number) => {
+    if (cancelled) return;
+    const t = Math.min(1, (now - start) / durationMs);
+    const eased = 1 - (1 - t) ** 3;
+    audio.volume = fromVol + (toVol - fromVol) * eased;
+    if (t < 1) {
+      requestAnimationFrame(step);
+    } else {
+      audio.volume = toVol;
+      if (!cancelled) onComplete();
+    }
+  };
+  requestAnimationFrame(step);
+  return () => {
+    cancelled = true;
+  };
+}
 
 function isQuestionStepKind(kind: QuizStep["kind"]): boolean {
   return (
@@ -189,8 +230,87 @@ export default function QuizPage() {
     null,
   );
   const [selectedGenderId, setSelectedGenderId] = useState<string | null>(null);
+  const [stayOnCalculating, setStayOnCalculating] = useState(false);
+  const [englishFeelTitle, setEnglishFeelTitle] = useState<string | null>(null);
+  const [practiceTimeLabel, setPracticeTimeLabel] = useState<string | null>(
+    null,
+  );
 
   const step = steps[index];
+
+  const summaryAmbientAudioRef = useRef<HTMLAudioElement | null>(null);
+  const summaryAmbientFadeCancelRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    const shouldPlaySummaryAmbient =
+      step?.kind === "summary" &&
+      step.headline !== SUMMARY_HEADLINE_GET_STARTED;
+
+    if (!shouldPlaySummaryAmbient) {
+      const audio = summaryAmbientAudioRef.current;
+      if (audio) {
+        summaryAmbientFadeCancelRef.current?.();
+        const fromVol = audio.volume;
+        summaryAmbientFadeCancelRef.current = fadeAudioVolume(
+          audio,
+          fromVol,
+          0,
+          QUIZ_SUMMARY_AMBIENT_FADE_OUT_MS,
+          () => {
+            audio.pause();
+            audio.removeAttribute("src");
+            audio.load();
+            if (summaryAmbientAudioRef.current === audio) {
+              summaryAmbientAudioRef.current = null;
+            }
+            summaryAmbientFadeCancelRef.current = null;
+          },
+        );
+      }
+      return () => {
+        summaryAmbientFadeCancelRef.current?.();
+        summaryAmbientFadeCancelRef.current = null;
+      };
+    }
+
+    summaryAmbientFadeCancelRef.current?.();
+    summaryAmbientFadeCancelRef.current = null;
+
+    if (
+      typeof window === "undefined" ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+
+    if (summaryAmbientAudioRef.current !== null) {
+      summaryAmbientAudioRef.current.volume = QUIZ_SUMMARY_AMBIENT_VOLUME;
+      return;
+    }
+
+    const audio = new Audio(QUIZ_SUMMARY_AMBIENT_SRC);
+    audio.volume = QUIZ_SUMMARY_AMBIENT_VOLUME;
+    audio.loop = true;
+    summaryAmbientAudioRef.current = audio;
+    void audio.play().catch(() => {});
+  }, [
+    step?.kind,
+    step?.kind === "summary" ? step.headline : undefined,
+  ]);
+
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    const stayOnLoading =
+      sp.get("calculating") === "stay" ||
+      sp.get("loading") === "stay" ||
+      sp.get("noredirect") === "1";
+    if (!stayOnLoading) return;
+    setStayOnCalculating(true);
+    if (QUIZ_CALCULATING_STEP_INDEX >= 0) {
+      setIndex(QUIZ_CALCULATING_STEP_INDEX);
+    }
+  }, []);
 
   const subtleScrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -255,6 +375,8 @@ export default function QuizPage() {
     if (index === 0) {
       setSelectedAgeGroupId(null);
       setSelectedGenderId(null);
+      setEnglishFeelTitle(null);
+      setPracticeTimeLabel(null);
     }
   }, [index]);
 
@@ -473,11 +595,17 @@ export default function QuizPage() {
       <CalculatingScreen
         onComplete={goNext}
         progressBar={progressBar("onWhite", false)}
+        stayOnScreen={stayOnCalculating}
       />
     );
   } else if (step?.kind === "summary") {
     inner = (
-      <SummaryLineScreen headline={step.headline} onContinue={goNext} />
+      <SummaryLineScreen
+        headline={step.headline}
+        englishFeelTitle={englishFeelTitle}
+        practiceTimeLabel={practiceTimeLabel}
+        onContinue={goNext}
+      />
     );
   } else if (step?.kind === "email") {
     inner = (
@@ -491,8 +619,11 @@ export default function QuizPage() {
   } else if (step?.kind === "referral") {
     inner = (
       <ReferralScreen
-        onCopyInvite={() => {
-          void navigator.clipboard.writeText(window.location.href);
+        onCopyInvite={async () => {
+          const url =
+            process.env.NEXT_PUBLIC_REFERRAL_INVITE_URL?.trim() ||
+            REFERRAL_INVITE_FALLBACK_URL;
+          await navigator.clipboard.writeText(url);
         }}
         hero={
           <div className="shrink-0 px-4">{progressBar("onBlue", false)}</div>
@@ -518,7 +649,19 @@ export default function QuizPage() {
           </div>
           <div className="flex flex-col gap-2">
             {step.options.map((opt) => (
-              <TitleTextRow key={opt.id} option={opt} onSelect={goNext} />
+              <TitleTextRow
+                key={opt.id}
+                option={opt}
+                onSelect={() => {
+                  if (
+                    step.question ===
+                    "What would you like your English to feel like?"
+                  ) {
+                    setEnglishFeelTitle(opt.title);
+                  }
+                  goNext();
+                }}
+              />
             ))}
           </div>
         </div>
@@ -688,6 +831,9 @@ export default function QuizPage() {
                   if (step.question === "What is your age group?") {
                     setSelectedAgeGroupId(opt.id);
                   }
+                  if (step.question === "How much time can you practice a day?") {
+                    setPracticeTimeLabel(opt.label);
+                  }
                   goNext();
                 }}
               />
@@ -716,17 +862,27 @@ export default function QuizPage() {
               variant={
                 step?.kind === "work-impact-teaser"
                   ? "workImpact"
-                  : "default"
+                  : step?.kind === "summary" || step?.kind === "referral"
+                    ? "center"
+                    : "default"
               }
             />
           ) : null}
           <div
             className={`relative z-[1] flex min-h-0 min-w-0 flex-1 flex-col ${
-              step?.kind === "teaser" || step?.kind === "start"
+              step?.kind === "teaser" ||
+              step?.kind === "start" ||
+              step?.kind === "referral" ||
+              step?.kind === "calculating"
                 ? "pb-0"
                 : "pb-4"
             } ${
-              isBlueScreen || step?.kind === "start" ? "pt-0" : "pt-4"
+              isBlueScreen ||
+              step?.kind === "start" ||
+              step?.kind === "email" ||
+              step?.kind === "calculating"
+                ? "pt-0"
+                : "pt-4"
             }`}
           >
             {progressMeta ? (
