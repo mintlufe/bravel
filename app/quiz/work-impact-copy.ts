@@ -3,13 +3,13 @@
  * ScreenGeneralWork (`subtle-single` work field) answer.
  */
 export type WorkImpactParts = {
-  /** Leading span — blue `#05a8ff` */
+  /** Leading span (job) — yellow `#FEC443` */
   a: string;
   /** Middle — white */
   b: string;
-  /** Highlight — green `#18c362` (ends before `cTailWhite` when set) */
+  /** Highlight — green `#67E997` (ends before `cTailWhite` when set) */
   c: string;
-  /** White text between green highlight and `d` — e.g. “potential” */
+  /** White text between highlight and `d` — e.g. “potential” */
   cTailWhite?: string;
   /** Trailing — white */
   d: string;
@@ -77,4 +77,4 @@ export const WORK_IMPACT_FALLBACK: WorkImpactParts =
   WORK_IMPACT_BY_FIELD["other-work"]!;
 
 export const PEARSON_NOTE =
-  "Based on Pearson English Impact research, 2024.";
+  "Based on Pearson English Impact research, 2024";

@@ -29,25 +29,27 @@ export function TeaserContinueScreen({
 }) {
   const sheetTop = sheetTopSpacing === "compact" ? "mt-2" : "mt-10";
   return (
-    <>
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-hidden">
-        <div className="relative z-[1] flex shrink-0 flex-col gap-2">{hero}</div>
-        <div
-          className={`relative z-[1] flex min-h-0 min-w-0 flex-1 flex-col ${sheetTop}`}
-        >
-          <div className="flex w-full shrink-0 justify-center px-10">
-            <div className="h-4 w-full rounded-t-2xl bg-[#70cfff]" />
-          </div>
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-t-[32px] bg-white p-4">
-            {children}
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-hidden">
+      <div className="relative z-[1] flex shrink-0 flex-col gap-2">{hero}</div>
+      <div
+        className={`relative z-[1] flex min-h-0 min-w-0 flex-1 flex-col ${sheetTop}`}
+      >
+        <div className="flex w-full shrink-0 justify-center px-10">
+          <div className="h-4 w-full rounded-t-2xl bg-[#70cfff]" />
+        </div>
+        <div className="flex min-h-0 flex-1 flex-col rounded-t-[32px] bg-white">
+          <div className="min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
+          <div
+            className="shrink-0 px-4 pt-3"
+            style={{
+              paddingBottom: "max(1rem, env(safe-area-inset-bottom, 0px))",
+            }}
+          >
+            <SheetBlackButton onClick={onContinue}>{ctaLabel}</SheetBlackButton>
           </div>
         </div>
       </div>
-      <QuizStickyFooterSlot />
-      <ButtonWrapper>
-        <SheetBlackButton onClick={onContinue}>{ctaLabel}</SheetBlackButton>
-      </ButtonWrapper>
-    </>
+    </div>
   );
 }
 
@@ -266,26 +268,28 @@ export function EmailCaptureScreen({
   );
 }
 
-function PeopleTeaserBody({ body }: { body?: string }) {
-  if (!body) return null;
-  const lead = "Aged 35-44";
-  if (body.startsWith(lead)) {
-    return (
-      <p className="text-[16px] font-normal leading-[22px] tracking-[-0.128px] text-[#22262f]">
-        <span className="font-semibold">{lead}</span>
-        {body.slice(lead.length)}
-      </p>
-    );
-  }
+function PeopleTeaserBody({ lead, rest }: { lead: string; rest: string }) {
   return (
-    <p className="text-[16px] font-normal leading-[22px] tracking-[-0.128px] text-[#22262f]">
-      {body}
+    <p className="text-[16px] font-normal leading-[22px] tracking-[-0.128px] text-[var(--text-secondary)]">
+      <span className="font-semibold">{lead}</span>
+      {rest}
     </p>
   );
 }
 
 /** Figma `121:2996` — map raster + stats row + avatars. */
-export function TeaserPeopleContent({ body }: { body?: string }) {
+export function TeaserPeopleContent({
+  learnerCountLabel,
+  lead,
+  rest,
+  gender = "female",
+}: {
+  learnerCountLabel: string;
+  lead: string;
+  rest: string;
+  /** From start screen gender; controls composite avatar strip. */
+  gender?: "female" | "male";
+}) {
   return (
     <div className="flex flex-col gap-6">
       <div className="relative h-[240px] w-full overflow-hidden rounded-2xl border border-[#ebeef5] bg-[#f5f6fa]">
@@ -302,43 +306,28 @@ export function TeaserPeopleContent({ body }: { body?: string }) {
         <div className="flex items-end justify-between gap-3">
           <div className="flex min-w-0 flex-1 items-end gap-2">
             <span className="text-[56px] font-semibold leading-none tracking-[-2.8px] text-[#22262f]">
-              45k
+              {learnerCountLabel}
             </span>
             <span className="pb-1 text-[32px] font-semibold leading-8 tracking-[-1.6px] text-[#22262f]">
               learners
             </span>
           </div>
-          <div className="flex shrink-0 -space-x-2">
-            <div className="relative z-[3] size-10 overflow-hidden rounded-full border-2 border-white bg-[#ebeef5]">
-              <Image
-                src={quizAssets.figmaAvatar1}
-                alt=""
-                width={40}
-                height={40}
-                className="size-full object-cover"
-              />
-            </div>
-            <div className="relative z-[2] size-10 overflow-hidden rounded-full border-2 border-white bg-[#ebeef5]">
-              <Image
-                src={quizAssets.figmaAvatar2}
-                alt=""
-                width={40}
-                height={40}
-                className="size-full object-cover"
-              />
-            </div>
-            <div className="relative z-[1] size-10 overflow-hidden rounded-full border-2 border-white bg-[#ebeef5]">
-              <Image
-                src={quizAssets.figmaAvatar3}
-                alt=""
-                width={40}
-                height={40}
-                className="size-full object-cover"
-              />
-            </div>
+          <div className="relative h-10 w-[104px] shrink-0">
+            <Image
+              src={
+                gender === "male"
+                  ? quizAssets.figmaTeaserPeopleAvatarsMale
+                  : quizAssets.figmaTeaserPeopleAvatarsFemale
+              }
+              alt=""
+              fill
+              className="object-contain object-right"
+              sizes="104px"
+              unoptimized
+            />
           </div>
         </div>
-        <PeopleTeaserBody body={body} />
+        <PeopleTeaserBody lead={lead} rest={rest} />
       </div>
     </div>
   );
@@ -346,9 +335,9 @@ export function TeaserPeopleContent({ body }: { body?: string }) {
 
 function BookNote({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex w-full gap-1.5">
+    <div className="flex w-full min-w-0 items-center gap-1.5">
       <svg
-        className="mt-px size-5 shrink-0 text-[#7a8399]"
+        className="size-5 shrink-0 text-[#7a8399]"
         width="20"
         height="20"
         viewBox="0 0 20 20"
@@ -387,11 +376,12 @@ export function TeaserLoopContent() {
             alt=""
             fill
             className="object-cover object-center"
-            sizes="361px"
+            sizes="(max-width: 480px) min(100vw - 80px, 361px), 361px"
             priority
+            unoptimized
           />
           <div className="pointer-events-none absolute left-1/2 top-1/2 z-[2] -translate-x-1/2 -translate-y-1/2">
-            <Mascot />
+            <Mascot eyes="happy" />
           </div>
         </div>
       </div>
@@ -400,18 +390,13 @@ export function TeaserLoopContent() {
         <p className="text-[28px] font-semibold leading-8 tracking-[-1.4px] text-[#22262f]">
           It&apos;s more common than you think!
         </p>
-        <p className="text-[0px] leading-[22px] text-[#464e62]">
-          <span className="text-[16px] font-normal tracking-[-0.128px]">
-            Many learners{" "}
-          </span>
-          <span className="text-[16px] font-semibold leading-[18px] tracking-[-0.32px] text-[#464e62]">
+        <p className="text-[16px] font-normal leading-[22px] tracking-[-0.128px] text-[var(--text-secondary)]">
+          Many learners{" "}
+          <span className="font-semibold text-[#22262f]">
             understand English better than they can speak
-          </span>
-          <span className="text-[16px] font-normal tracking-[-0.128px]">
-            {" "}
-            it. The good news? This gap can be fixed with the right kind of
-            practice.
-          </span>
+          </span>{" "}
+          it. The good news? This gap can be fixed with the right kind of
+          practice.
         </p>
       </div>
     </div>

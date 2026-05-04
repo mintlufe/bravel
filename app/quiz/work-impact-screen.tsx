@@ -4,8 +4,8 @@ import type { WorkImpactParts } from "./work-impact-copy";
 import { PEARSON_NOTE } from "./work-impact-copy";
 import {
   ButtonWrapper,
-  PrimaryButton,
   QuizStickyFooterSlot,
+  SheetBlackButton,
   quizStickyScrollGapBottom,
 } from "./ui";
 
@@ -51,18 +51,18 @@ export function WorkImpactScreen({
       <div
         className={`flex min-h-0 min-w-0 flex-1 flex-col items-stretch justify-center gap-6 overflow-y-auto px-4 ${quizStickyScrollGapBottom} ${contentTopClass}`}
       >
-        <p className="w-full text-center text-[28px] font-semibold leading-8 tracking-[-1.4px]">
-          <span className="text-[#05a8ff]">{parts.a}</span>
+        <p className="w-full text-center text-[28px] font-semibold leading-[32px] tracking-[-1.4px]">
+          <span className="text-[#FEC443]">{parts.a}</span>
           <span className="text-white">{parts.b}</span>
-          <span className="text-[#18c362]">{parts.c}</span>
+          <span className="text-[#67E997]">{parts.c}</span>
           {parts.cTailWhite ? (
             <span className="text-white">{parts.cTailWhite}</span>
           ) : null}
           <span className="text-white">{parts.d}</span>
         </p>
-        <div className="mx-auto w-full max-w-[361px] px-1">
-          <div className="flex gap-2 px-1 py-2">
-            <BookIcon className="mt-0.5 size-5 shrink-0 text-white/90" />
+        <div className="mx-auto w-full max-w-[361px]">
+          <div className="flex w-full items-center gap-[0.48rem] rounded-[0.8rem] bg-white/20 px-[0.4rem] py-[0.8rem]">
+            <BookIcon className="size-5 shrink-0 text-white/90" />
             <p className="min-w-0 flex-1 text-left text-[14px] font-normal leading-[18px] tracking-[-0.112px] text-white/80">
               {PEARSON_NOTE}
             </p>
@@ -71,7 +71,7 @@ export function WorkImpactScreen({
       </div>
       <QuizStickyFooterSlot />
       <ButtonWrapper>
-        <PrimaryButton onClick={onContinue}>Continue</PrimaryButton>
+        <SheetBlackButton onClick={onContinue}>Continue</SheetBlackButton>
       </ButtonWrapper>
     </>
   );

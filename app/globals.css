@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  --text-secondary: #464e62;
   --background: #ffffff;
   --foreground: #171717;
   /* Quiz motion — default ↔ hover (300ms) + shared easing */
@@ -123,7 +124,25 @@
 
 .mascot-eyes-blink {
   transform-origin: center center;
-  animation: mascot-eye-blink 3.2s ease-in-out infinite;
+  animation: mascot-eye-blink 2.25s ease-in-out infinite;
+}
+
+@keyframes quiz-vector-beams-work-impact {
+  0%,
+  100% {
+    opacity: 0.88;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.045);
+  }
+}
+
+.quiz-vector-beams-work-impact {
+  transform-origin: 50% 12%;
+  animation: quiz-vector-beams-work-impact 10s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -141,6 +160,12 @@
   .mascot-eyes-look,
   .mascot-eyes-blink {
     animation: none;
+  }
+
+  .quiz-vector-beams-work-impact {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 }
 

@@ -10,12 +10,15 @@ export const quizAssets = {
   dot: "/quiz-assets/6c5eaa8ffbf8951e0a90bbbb67666505a98d7387.svg",
   /** Exported from Figma (Bravel funnel) — raster reference */
   figmaVectorBeams: "/quiz-assets/figma/vector-beams.png",
-  figmaTeaserPeopleMap: "/quiz-assets/figma/teaser-people-map.png",
-  figmaTeaserLoopIllustration: "/quiz-assets/figma/teaser-loop-illustration.png",
-  figmaTeaserRememberIllustration: "/quiz-assets/figma/teaser-remember-illustration.png",
+  figmaTeaserPeopleMap: "/quiz-assets/figma/teaser-people-map.avif",
+  figmaTeaserLoopIllustration: "/quiz-assets/figma/teaser-loop-illustration.avif",
+  figmaTeaserRememberIllustration: "/quiz-assets/figma/teaser-remember-illustration.avif",
   figmaCalcPaginationDots: "/quiz-assets/figma/calc-pagination-dots.png",
   figmaIconCheckGreen: "/quiz-assets/figma/icon-check-green.svg",
   figmaAvatar1: "/quiz-assets/figma/avatar-1.png",
   figmaAvatar2: "/quiz-assets/figma/avatar-2.png",
   figmaAvatar3: "/quiz-assets/figma/avatar-3.png",
+  /** Stacked face strip for people teaser (gender-specific). */
+  figmaTeaserPeopleAvatarsFemale: "/quiz-assets/figma/teaser-people-avatars-female.avif",
+  figmaTeaserPeopleAvatarsMale: "/quiz-assets/figma/teaser-people-avatars-male.avif",
 } as const;

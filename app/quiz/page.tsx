@@ -43,6 +43,18 @@ import {
   WORK_IMPACT_BY_FIELD,
   WORK_IMPACT_FALLBACK,
 } from "./work-impact-copy";
+import { getPeopleTeaserCopy } from "./people-teaser-copy";
+
+function isQuestionStepKind(kind: QuizStep["kind"]): boolean {
+  return (
+    kind === "start" ||
+    kind === "plain-single" ||
+    kind === "subtle-single" ||
+    kind === "multi" ||
+    kind === "title-single" ||
+    kind === "email"
+  );
+}
 
 function shouldShowStickyOther(
   step: QuizStep | undefined,
@@ -173,6 +185,10 @@ export default function QuizPage() {
   );
   const [subtleOtherText, setSubtleOtherText] = useState("");
   const [emailDraft, setEmailDraft] = useState("");
+  const [selectedAgeGroupId, setSelectedAgeGroupId] = useState<string | null>(
+    null,
+  );
+  const [selectedGenderId, setSelectedGenderId] = useState<string | null>(null);
 
   const step = steps[index];
 
@@ -235,6 +251,13 @@ export default function QuizPage() {
     setSubtleOtherText("");
   }, [index]);
 
+  useEffect(() => {
+    if (index === 0) {
+      setSelectedAgeGroupId(null);
+      setSelectedGenderId(null);
+    }
+  }, [index]);
+
   const bumpMotion = useCallback(() => {
     setMotionGeneration((g) => g + 1);
   }, []);
@@ -276,7 +299,11 @@ export default function QuizPage() {
       } as const;
     }
     if (step.kind === "start") {
-      return { shell: "bg-black", frame: "text-white", beams: false } as const;
+      return {
+        shell: "bg-gradient-to-b from-[#05a8ff] to-[#057ccc]",
+        frame: "text-white",
+        beams: false,
+      } as const;
     }
     if (step.kind === "calculating" || step.kind === "email") {
       return {
@@ -307,8 +334,7 @@ export default function QuizPage() {
       step.kind === "plain-single" ||
       step.kind === "subtle-single" ||
       step.kind === "multi" ||
-      step.kind === "title-single" ||
-      step.kind === "title-multi"
+      step.kind === "title-single"
     ) {
       return {
         shell: "quiz-shell-funnel-general",
@@ -318,6 +344,10 @@ export default function QuizPage() {
     }
     return { shell: "quiz-shell-gradient", frame: "text-white", beams: false } as const;
   }, [step]);
+
+  /** Start embeds beams inside {@link ScreenStart}; still needs overflow visible on the frame. */
+  const allowBeamHorizontalOverflow =
+    !!step && (shell.beams || step.kind === "start");
 
   const showGlobalProgress =
     step &&
@@ -333,6 +363,18 @@ export default function QuizPage() {
       ? { current: step.progress, total: step.total }
       : null;
 
+  const questionTotal = useMemo(
+    () => steps.filter((s) => isQuestionStepKind(s.kind)).length,
+    [],
+  );
+  const currentQuestionNumber = useMemo(() => {
+    if (!step) return 0;
+    return steps
+      .slice(0, index + 1)
+      .filter((s) => isQuestionStepKind(s.kind)).length;
+  }, [index, step]);
+  const isCurrentStepQuestion = !!step && isQuestionStepKind(step.kind);
+
   const isBlueScreen =
     !!step &&
     (step.kind === "teaser" ||
@@ -347,23 +389,26 @@ export default function QuizPage() {
       step.kind === "plain-single" ||
       step.kind === "subtle-single" ||
       step.kind === "multi" ||
-      step.kind === "title-single" ||
-      step.kind === "title-multi"
+      step.kind === "title-single"
     ) {
       return "funnel";
     }
     return "onBlue";
   }, [step]);
 
-  /** Spacing below progress bar only; page top inset is a single `pt-4` on the quiz column. */
+  /** Spacing below progress bar; non-blue column uses `pt-4`, blue uses `pt-0` + `pt-4` on {@link ProgressBar}. */
   const contentPadTop = progressMeta ? "pt-10" : "";
 
-  const progressBar = (surface: "onBlue" | "onWhite" | "funnel" = "onBlue") =>
+  const progressBar = (
+    surface: "onBlue" | "onWhite" | "funnel" = "onBlue",
+    showDetails = true,
+  ) =>
     step && "progress" in step ? (
       <ProgressBar
         surface={surface}
-        current={step.progress}
-        total={step.total}
+        showDetails={showDetails}
+        current={currentQuestionNumber}
+        total={questionTotal}
         onBack={goBack}
       />
     ) : null;
@@ -383,7 +428,10 @@ export default function QuizPage() {
           question={step.question}
           questionSub={step.questionSub}
           options={step.options}
-          onOptionSelect={goNext}
+          onOptionSelect={(optionId) => {
+            setSelectedGenderId(optionId);
+            goNext();
+          }}
         />
       </div>
     );
@@ -396,7 +444,7 @@ export default function QuizPage() {
         onContinue={goNext}
         hero={
           <>
-            <div className="shrink-0 px-4 pt-4">{progressBar("onBlue")}</div>
+            <div className="shrink-0 px-4">{progressBar("onBlue", false)}</div>
             {titleInBlueHero ? (
               <h2 className="whitespace-pre-line px-4 text-center text-[28px] font-semibold leading-8 tracking-[-1.4px] text-white">
                 {step.title}
@@ -406,7 +454,10 @@ export default function QuizPage() {
         }
       >
         {step.variant === "people" ? (
-          <TeaserPeopleContent body={step.body} />
+          <TeaserPeopleContent
+            {...getPeopleTeaserCopy(selectedAgeGroupId)}
+            gender={selectedGenderId === "male" ? "male" : "female"}
+          />
         ) : null}
         {step.variant === "table" ? (
           <TeaserTableContent body={step.body} />
@@ -421,7 +472,7 @@ export default function QuizPage() {
     inner = (
       <CalculatingScreen
         onComplete={goNext}
-        progressBar={progressBar("onWhite")}
+        progressBar={progressBar("onWhite", false)}
       />
     );
   } else if (step?.kind === "summary") {
@@ -434,7 +485,7 @@ export default function QuizPage() {
         value={emailDraft}
         onChange={setEmailDraft}
         onContinue={goNext}
-        progressBar={progressBar("onWhite")}
+        progressBar={progressBar("onWhite", true)}
       />
     );
   } else if (step?.kind === "referral") {
@@ -443,7 +494,9 @@ export default function QuizPage() {
         onCopyInvite={() => {
           void navigator.clipboard.writeText(window.location.href);
         }}
-        hero={<div className="shrink-0 px-4 pt-4">{progressBar("onBlue")}</div>}
+        hero={
+          <div className="shrink-0 px-4">{progressBar("onBlue", false)}</div>
+        }
       />
     );
   } else if (step?.kind === "title-single") {
@@ -470,48 +523,6 @@ export default function QuizPage() {
           </div>
         </div>
       </div>
-    );
-  } else if (step?.kind === "title-multi") {
-    const canContinue = multiSelected.size > 0;
-    inner = (
-      <>
-        <div
-          className={`flex min-h-0 flex-1 flex-col gap-10 overflow-y-auto px-4 ${quizStickyScrollGapBottom} ${contentPadTop}`}
-        >
-          <div className="flex flex-col gap-10">
-            <div className="flex gap-2">
-              <Mascot />
-              <QuizMessage tone="light">
-                <p className="w-full text-[18px] font-semibold leading-[22px] tracking-[-0.36px] text-[#22262f]">
-                  {step.question}
-                </p>
-                {step.subtitle ? (
-                  <p className="w-full text-[16px] font-normal leading-5 tracking-[-0.128px] text-[#464e62]">
-                    {step.subtitle}
-                  </p>
-                ) : null}
-              </QuizMessage>
-            </div>
-            <div className="flex flex-col gap-2">
-              {step.options.map((opt) => (
-                <TitleTextRow
-                  key={opt.id}
-                  option={opt}
-                  mode="multi"
-                  selected={multiSelected.has(opt.id)}
-                  onSelect={() => toggleMulti(opt.id)}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-        <QuizStickyFooterSlot />
-        <ButtonWrapper>
-          <FunnelContinueButton disabled={!canContinue} onClick={goNext}>
-            Continue
-          </FunnelContinueButton>
-        </ButtonWrapper>
-      </>
     );
   } else if (step?.kind === "multi") {
     const canContinue = multiSelected.size > 0;
@@ -670,7 +681,16 @@ export default function QuizPage() {
           </div>
           <div className="flex flex-col gap-2">
             {step.options.map((opt) => (
-              <PlainRow key={opt.id} option={opt} onSelect={goNext} />
+              <PlainRow
+                key={opt.id}
+                option={opt}
+                onSelect={() => {
+                  if (step.question === "What is your age group?") {
+                    setSelectedAgeGroupId(opt.id);
+                  }
+                  goNext();
+                }}
+              />
             ))}
           </div>
         </div>
@@ -682,20 +702,40 @@ export default function QuizPage() {
 
   return (
     <div className={`flex min-h-0 w-full flex-1 flex-col ${shell.shell}`}>
-      <QuizFrame className={shell.frame}>
-        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
-          {shell.beams ? <VectorBeamsBackground /> : null}
+      <QuizFrame
+        allowHorizontalOverflow={allowBeamHorizontalOverflow}
+        className={shell.frame}
+      >
+        <div
+          className={`relative flex min-h-0 min-w-0 flex-1 flex-col ${
+            allowBeamHorizontalOverflow ? "overflow-x-visible" : "overflow-x-hidden"
+          }`}
+        >
+          {shell.beams ? (
+            <VectorBeamsBackground
+              variant={
+                step?.kind === "work-impact-teaser"
+                  ? "workImpact"
+                  : "default"
+              }
+            />
+          ) : null}
           <div
-            className={`relative z-[1] flex min-h-0 min-w-0 flex-1 flex-col pb-4 ${
-              isBlueScreen ? "pt-0" : "pt-4"
+            className={`relative z-[1] flex min-h-0 min-w-0 flex-1 flex-col ${
+              step?.kind === "teaser" || step?.kind === "start"
+                ? "pb-0"
+                : "pb-4"
+            } ${
+              isBlueScreen || step?.kind === "start" ? "pt-0" : "pt-4"
             }`}
           >
             {progressMeta ? (
               <div className="shrink-0 px-4">
                 <ProgressBar
                   surface={progressSurfaceForEmbedded}
-                  current={progressMeta.current}
-                  total={progressMeta.total}
+                  showDetails={isCurrentStepQuestion}
+                  current={currentQuestionNumber}
+                  total={questionTotal}
                   onBack={goBack}
                 />
               </div>

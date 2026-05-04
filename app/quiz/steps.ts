@@ -75,14 +75,6 @@ export type QuizStep =
       options: TitleTextOption[];
     }
   | {
-      kind: "title-multi";
-      progress: number;
-      total: number;
-      question: string;
-      subtitle?: string;
-      options: TitleTextOption[];
-    }
-  | {
       kind: "multi";
       progress: number;
       total: number;
@@ -151,7 +143,6 @@ export const steps: QuizStep[] = [
     progress: 2,
     total: QUIZ_TOTAL,
     title: "You’ve come\nto the right place!",
-    body: "Aged 35-44 are already practicing English to speak more confidently at work, abroad, and in everyday life.",
   },
   {
     kind: "subtle-single",
@@ -237,11 +228,10 @@ export const steps: QuizStep[] = [
     body: "You don’t need perfect discipline or long lessons. Short daily speaking sessions help you build confidence step by step.",
   },
   {
-    kind: "title-multi",
+    kind: "title-single",
     progress: 11,
     total: QUIZ_TOTAL,
     question: "What would you like your English to feel like?",
-    subtitle: "Choose all that applies",
     options: [
       {
         id: "natural",

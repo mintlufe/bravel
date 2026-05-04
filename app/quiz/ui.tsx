@@ -1,10 +1,11 @@
 "use client";
 
-import { useLayoutEffect, useState } from "react";
+import { useId, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import type { CheckboxOption, SubtleOption, TitleTextOption } from "./steps";
 import { quizAssets } from "./assets";
+import { MascotHappySpriteSvg } from "./mascot-happy-sprite";
 
 const inter = "font-[family-name:var(--font-inter),sans-serif]";
 
@@ -52,11 +53,11 @@ export function PrimaryButton({
     >
       <span
         aria-hidden
-        className="quiz-transition-interactive absolute inset-0 rounded-2xl bg-gradient-to-b from-[#47bfff] to-[#057ccc] opacity-100 group-hover:opacity-0 group-disabled:opacity-100 group-disabled:group-hover:opacity-100"
+        className="quiz-transition-interactive absolute inset-0 rounded-2xl bg-gradient-to-b from-[#555b66] to-[#383c44] opacity-100 group-hover:opacity-0 group-disabled:opacity-100 group-disabled:group-hover:opacity-100"
       />
       <span
         aria-hidden
-        className="quiz-transition-interactive absolute inset-0 rounded-2xl bg-gradient-to-b from-[#70cfff] to-[#05a8ff] opacity-0 group-hover:opacity-100 group-disabled:opacity-0 group-disabled:group-hover:opacity-0"
+        className="quiz-transition-interactive absolute inset-0 rounded-2xl bg-gradient-to-b from-[#656b76] to-[#484c54] opacity-0 group-hover:opacity-100 group-disabled:opacity-0 group-disabled:group-hover:opacity-0"
       />
       <span className="relative">{children}</span>
       <span
@@ -70,109 +71,105 @@ export function PrimaryButton({
 type QuizFrameProps = {
   children: React.ReactNode;
   className?: string;
+  /**
+   * Allow horizontal bleed for {@link VectorBeamsBackground} (wide SVG).
+   * Default `false` keeps the 393px column from showing stray horizontal scroll.
+   */
+  allowHorizontalOverflow?: boolean;
 };
 
-export function QuizFrame({ children, className = "" }: QuizFrameProps) {
+export function QuizFrame({
+  children,
+  className = "",
+  allowHorizontalOverflow = false,
+}: QuizFrameProps) {
+  const overflowX = allowHorizontalOverflow
+    ? "overflow-x-visible"
+    : "overflow-x-hidden";
   return (
     <div
-      className={`${inter} mx-auto flex min-h-0 w-full max-w-[393px] flex-1 flex-col overflow-x-hidden bg-transparent ${className}`}
+      className={`${inter} mx-auto flex min-h-0 w-full max-w-[393px] flex-1 flex-col ${overflowX} bg-transparent ${className}`}
     >
       {children}
     </div>
   );
 }
 
+type VectorBeamsBackgroundProps = {
+  /** `workImpact` — centered beam fan for work-field impact hero (Figma). */
+  variant?: "default" | "workImpact";
+};
+
 /** Figma `VectorBeams` */
-export function VectorBeamsBackground() {
-  return (
-    <div
-      className="pointer-events-none absolute left-1/2 top-[-883px] z-0 h-[1634px] w-[758px] -translate-x-1/2"
-      aria-hidden
+export function VectorBeamsBackground({
+  variant = "default",
+}: VectorBeamsBackgroundProps) {
+  const uid = useId().replace(/:/g, "");
+  const paint0 = `${uid}-paint0_radial_121_3113`;
+  const paint1 = `${uid}-paint1_radial_121_3113`;
+  const paint2 = `${uid}-paint2_radial_121_3113`;
+  const paint3 = `${uid}-paint3_radial_121_3113`;
+  const paint4 = `${uid}-paint4_radial_121_3113`;
+
+  const radial1213113 = (id: string) => (
+    <radialGradient
+      id={id}
+      cx="0"
+      cy="0"
+      r="1"
+      gradientUnits="userSpaceOnUse"
+      gradientTransform="translate(379 1062) rotate(90) scale(746 346.064)"
     >
+      <stop offset="0.159691" stopColor="white" stopOpacity={0} />
+      <stop offset="0.5953" stopColor="white" stopOpacity={0.2} />
+      <stop offset="1" stopColor="white" stopOpacity={0} />
+    </radialGradient>
+  );
+
+  const positionClass =
+    variant === "workImpact"
+      ? "pointer-events-none absolute left-1/2 top-[-73.7rem] z-0 h-[1634px] w-[758px] -translate-x-1/2"
+      : "pointer-events-none absolute left-1/2 top-[-883px] z-0 h-[1634px] w-[758px] -translate-x-1/2";
+
+  const beamsMotionClass =
+    variant === "workImpact" ? "quiz-vector-beams-work-impact" : "";
+
+  return (
+    <div className={positionClass} aria-hidden>
       <svg
         width="758"
         height="1634"
-        viewBox="-182 -883 758 1634"
+        viewBox="0 0 758 1634"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="block size-full max-h-none max-w-none"
+        className={`block size-full max-h-none max-w-none ${beamsMotionClass}`}
       >
         <path
-          d="M231.96 120.665L576 -671.712V-255.842L257.824 164.44L576 -5.12622V96.3538L257.824 164.44L231.96 120.665Z"
-          fill="url(#paint0_radial_121_3115)"
+          d="M413.96 1003.67L758 211.288V627.158L439.824 1047.44L758 877.874V979.354L439.824 1047.44L413.96 1003.67Z"
+          fill={`url(#${paint0})`}
         />
         <path
-          d="M231.96 218.165L576 597.785V751H446.682L202.118 238.062L231.96 218.165Z"
-          fill="url(#paint1_radial_121_3115)"
+          d="M413.96 1101.16L758 1480.78V1634H628.682L384.118 1121.06L413.96 1101.16Z"
+          fill={`url(#${paint1})`}
         />
         <path
-          d="M188.191 238.062L-12.8925 751H-182V647.53L146.412 218.165L188.191 238.062Z"
-          fill="url(#paint2_radial_121_3115)"
+          d="M370.191 1121.06L169.108 1634H0V1530.53L328.412 1101.16L370.191 1121.06Z"
+          fill={`url(#${paint2})`}
         />
         <path
-          d="M132.485 196.277L-182 213.752V116.252L132.485 164.44L-182 -182.219V-562.272L162.328 120.665L132.485 164.44V196.277Z"
-          fill="url(#paint3_radial_121_3115)"
+          d="M314.485 1079.28L0 1096.75V999.252L314.485 1047.44L0 700.781V320.728L344.328 1003.67L314.485 1047.44V1079.28Z"
+          fill={`url(#${paint3})`}
         />
         <path
-          d="M186.058 -883H67.5418L176.994 120.665H218.261L186.058 -883Z"
-          fill="url(#paint4_radial_121_3115)"
+          d="M368.058 0H249.542L358.994 1003.67H400.261L368.058 0Z"
+          fill={`url(#${paint4})`}
         />
         <defs>
-          <radialGradient
-            id="paint0_radial_121_3115"
-            cx="0"
-            cy="0"
-            r="1"
-            gradientUnits="userSpaceOnUse"
-            gradientTransform="translate(197 179) rotate(90) scale(603.5 279.959)"
-          >
-            <stop offset="0.21766" stopColor="white" stopOpacity="0" />
-            <stop offset="0.728784" stopColor="white" stopOpacity="0.2" />
-          </radialGradient>
-          <radialGradient
-            id="paint1_radial_121_3115"
-            cx="0"
-            cy="0"
-            r="1"
-            gradientUnits="userSpaceOnUse"
-            gradientTransform="translate(197 179) rotate(90) scale(603.5 279.959)"
-          >
-            <stop offset="0.21766" stopColor="white" stopOpacity="0" />
-            <stop offset="0.728784" stopColor="white" stopOpacity="0.2" />
-          </radialGradient>
-          <radialGradient
-            id="paint2_radial_121_3115"
-            cx="0"
-            cy="0"
-            r="1"
-            gradientUnits="userSpaceOnUse"
-            gradientTransform="translate(197 179) rotate(90) scale(603.5 279.959)"
-          >
-            <stop offset="0.21766" stopColor="white" stopOpacity="0" />
-            <stop offset="0.728784" stopColor="white" stopOpacity="0.2" />
-          </radialGradient>
-          <radialGradient
-            id="paint3_radial_121_3115"
-            cx="0"
-            cy="0"
-            r="1"
-            gradientUnits="userSpaceOnUse"
-            gradientTransform="translate(197 179) rotate(90) scale(603.5 279.959)"
-          >
-            <stop offset="0.21766" stopColor="white" stopOpacity="0" />
-            <stop offset="0.728784" stopColor="white" stopOpacity="0.2" />
-          </radialGradient>
-          <radialGradient
-            id="paint4_radial_121_3115"
-            cx="0"
-            cy="0"
-            r="1"
-            gradientUnits="userSpaceOnUse"
-            gradientTransform="translate(197 179) rotate(90) scale(603.5 279.959)"
-          >
-            <stop offset="0.21766" stopColor="white" stopOpacity="0" />
-            <stop offset="0.728784" stopColor="white" stopOpacity="0.2" />
-          </radialGradient>
+          {radial1213113(paint0)}
+          {radial1213113(paint1)}
+          {radial1213113(paint2)}
+          {radial1213113(paint3)}
+          {radial1213113(paint4)}
         </defs>
       </svg>
     </div>
@@ -284,7 +281,20 @@ export function SocialProof({
   );
 }
 
-export function Mascot() {
+type MascotProps = {
+  /** `happy` — downward arc “happy” eyes for loop teaser (matches diagram art). */
+  eyes?: "default" | "happy";
+};
+
+export function Mascot({ eyes = "default" }: MascotProps) {
+  if (eyes === "happy") {
+    return (
+      <div className="relative size-24 shrink-0 overflow-visible">
+        <MascotHappySpriteSvg className="block size-full max-h-none max-w-none" />
+      </div>
+    );
+  }
+
   return (
     <div className="relative size-16 shrink-0 overflow-visible">
       <div className="absolute left-0 top-0 z-0 size-16">
@@ -295,8 +305,8 @@ export function Mascot() {
         </div>
       </div>
       <div className="mascot-eyes-look absolute left-[21.34px] top-[17.08px] z-10 flex h-[18.115px] w-[27.961px] items-center justify-center will-change-transform">
-        <div className="flex-none -rotate-[9.54deg]">
-          <div className="mascot-eyes-blink relative h-[14px] w-[26px] will-change-transform">
+        <div className="-rotate-[9.54deg] flex-none">
+          <div className="relative mascot-eyes-blink h-[14px] w-[26px] will-change-transform">
             <div className="absolute inset-[-71.43%_-46.15%_-100%_-46.15%]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -382,7 +392,7 @@ function ChevronBackToken() {
     >
       <path
         d="M15 5L9 12L15 19"
-        stroke="#464E62"
+        stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -395,6 +405,7 @@ type ProgressBarProps = {
   current: number;
   total: number;
   onBack: () => void;
+  showDetails?: boolean;
   /**
    * `onBlue` — hero / summary on blue (`Image` chevron).
    * `onWhite` — calculating / email white page.
@@ -407,14 +418,19 @@ export function ProgressBar({
   current,
   total,
   onBack,
+  showDetails = true,
   surface = "onBlue",
 }: ProgressBarProps) {
   const pct = Math.min(100, Math.max(0, (current / total) * 100));
+  const onBlue = surface === "onBlue";
   const onWhite = surface === "onWhite";
   const funnel = surface === "funnel";
+  const chevronColor = onBlue ? "text-white" : "text-[#464e62]";
 
   return (
-    <div className="flex w-full items-center gap-[16px]">
+    <div
+      className={`flex w-full items-center gap-[16px]${onBlue ? " pt-4" : ""}`}
+    >
       <div className="flex w-[48px] shrink-0 items-center">
         <button
           type="button"
@@ -422,11 +438,15 @@ export function ProgressBar({
           className="quiz-transition-interactive relative size-6 shrink-0 overflow-hidden rounded-sm hover:opacity-80 active:scale-95"
           aria-label="Back"
         >
-          <span className="absolute inset-0 flex items-center justify-center">
+          <span
+            className={`absolute inset-0 flex items-center justify-center ${chevronColor}`}
+          >
             <ChevronBackToken />
           </span>
         </button>
       </div>
+      {!showDetails ? null : (
+        <>
       <div
         className={`relative min-h-0 min-w-0 flex-1 overflow-hidden rounded-full ${
           funnel || onWhite ? "h-2 bg-[#ebeef5]" : "h-2 bg-[#202227]"
@@ -468,6 +488,8 @@ export function ProgressBar({
           {total}
         </span>
       </div>
+        </>
+      )}
     </div>
   );
 }
@@ -541,9 +563,7 @@ export function CheckboxRow({ option, selected, onToggle }: CheckboxRowProps) {
     <button
       type="button"
       onClick={onToggle}
-      className={`quiz-transition-interactive flex min-h-[56px] w-full items-center gap-3 rounded-2xl border border-[#ebeef5] bg-[#f5f6fa] p-4 text-left hover:bg-[#eef0f5] active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#05a8ff] ${
-        selected ? "ring-2 ring-[#05a8ff] ring-offset-1" : ""
-      }`}
+      className="quiz-transition-interactive flex min-h-[56px] w-full items-center gap-3 rounded-2xl border border-[#ebeef5] bg-[#f5f6fa] p-4 text-left hover:bg-[#eef0f5] active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#05a8ff]"
     >
       {option.emoji ? (
         <span className="shrink-0 text-[24px] leading-6 tracking-[-0.192px]">
@@ -554,19 +574,29 @@ export function CheckboxRow({ option, selected, onToggle }: CheckboxRowProps) {
         {option.label}
       </span>
       <span
-        className={`relative size-6 shrink-0 overflow-hidden rounded-lg ${
-          selected ? "bg-[#18c362]" : "bg-[#d0d5e1]"
+        className={`relative flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-lg ${
+          selected
+            ? "border-2 border-[#05a8ff] bg-[#05a8ff]"
+            : "border border-[#d0d5e1] bg-white"
         }`}
         aria-hidden
       >
         {selected ? (
-          <Image
-            src={quizAssets.checkboxChecked}
-            alt=""
-            fill
-            className="object-cover p-[2px]"
-            sizes="24px"
-          />
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="size-3.5 shrink-0"
+            aria-hidden
+          >
+            <path
+              d="M5 12.5L10.5 18L20 6"
+              stroke="white"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         ) : null}
       </span>
     </button>
