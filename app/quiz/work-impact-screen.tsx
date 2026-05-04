@@ -2,16 +2,20 @@
 
 import type { WorkImpactParts } from "./work-impact-copy";
 import { PEARSON_NOTE } from "./work-impact-copy";
-import { ButtonWrapper, PrimaryButton } from "./ui";
+import {
+  ButtonWrapper,
+  PrimaryButton,
+  QuizStickyFooterSlot,
+  quizStickyScrollGapBottom,
+} from "./ui";
 
-/** IconBook from Figma — matches design asset paths */
 function BookIcon({ className }: { className?: string }) {
   return (
     <svg
       className={className}
-      width={24}
-      height={24}
-      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden
@@ -19,11 +23,11 @@ function BookIcon({ className }: { className?: string }) {
       <path
         fillRule="evenodd"
         clipRule="evenodd"
-        d="M6.271 2.112C5.461 2.218 5.033 2.413 4.727 2.712C4.422 3.012 4.223 3.432 4.114 4.225C4.002 5.042 4 6.124 4 7.675V16.245C4.39598 15.9746 4.83533 15.7741 5.299 15.652C5.827 15.513 6.443 15.513 7.346 15.514H20V7.676C20 6.124 19.998 5.042 19.886 4.225C19.777 3.432 19.578 3.012 19.273 2.712C18.967 2.413 18.539 2.218 17.729 2.112C16.895 2.002 15.791 2 14.207 2H9.793C8.209 2 7.105 2.002 6.271 2.112ZM6.759 6.595C6.759 6.147 7.129 5.784 7.586 5.784H16.414C16.631 5.78213 16.8398 5.86633 16.9948 6.01815C17.1498 6.16997 17.2384 6.37704 17.241 6.594C17.2386 6.81113 17.1502 7.01846 16.9952 7.17049C16.8401 7.32253 16.6311 7.40687 16.414 7.405H7.586C7.36903 7.40687 7.16017 7.32267 7.00516 7.17085C6.85016 7.01903 6.76164 6.81196 6.759 6.595ZM7.586 9.568C7.36903 9.56613 7.16017 9.65033 7.00516 9.80215C6.85016 9.95397 6.76164 10.161 6.759 10.378C6.759 10.826 7.129 11.189 7.586 11.189H13.103C13.3201 11.1911 13.5293 11.1071 13.6845 10.9552C13.8397 10.8034 13.9284 10.5961 13.931 10.379C13.9286 10.1617 13.8401 9.95422 13.6848 9.80215C13.5296 9.65008 13.3203 9.56587 13.103 9.568H7.586Z"
+        d="M5.23 1.76C4.55 1.85 4.19 2.01 3.94 2.26C3.68 2.51 3.52 2.86 3.43 3.52C3.33 4.2 3.33 5.1 3.33 6.4V13.54C3.66 13.31 4.03 13.15 4.42 13.04C4.86 12.93 5.37 12.93 6.12 12.93H16.67V6.4C16.67 5.1 16.66 4.2 16.56 3.52C16.47 2.86 16.31 2.51 16.06 2.26C15.8 2.01 15.45 1.85 14.77 1.76C14.08 1.66 13.16 1.66 11.84 1.66H8.16C6.84 1.66 5.92 1.66 5.23 1.76ZM5.63 5.5C5.63 5.12 5.94 4.82 6.32 4.82H13.68C13.86 4.82 14.03 4.89 14.16 5.02C14.28 5.14 14.35 5.31 14.35 5.49C14.35 5.68 14.28 5.85 14.15 5.98C14.03 6.1 13.86 6.17 13.68 6.17H6.32C6.14 6.17 5.97 6.1 5.85 5.98C5.72 5.85 5.63 5.68 5.63 5.5ZM6.32 7.97C6.14 7.97 5.97 8.04 5.85 8.16C5.72 8.29 5.63 8.46 5.63 8.64C5.63 9.02 5.94 9.32 6.32 9.32H10.92C11.1 9.32 11.27 9.25 11.4 9.13C11.53 9 11.61 8.83 11.61 8.65C11.61 8.46 11.53 8.29 11.4 8.16C11.27 8.04 11.1 7.97 10.92 7.97H6.32Z"
         fill="currentColor"
       />
       <path
-        d="M7.47278 17.135H19.9998C19.9968 18.265 19.9788 19.109 19.8868 19.775C19.7778 20.568 19.5788 20.988 19.2738 21.288C18.9678 21.587 18.5398 21.782 17.7298 21.888C16.8958 21.998 15.7918 22 14.2078 22H9.79279C8.20879 22 7.10478 21.998 6.27078 21.889C5.46078 21.782 5.03279 21.587 4.72679 21.288C4.42179 20.988 4.22278 20.568 4.11378 19.775C4.07278 19.475 4.04579 19.138 4.02979 18.755C4.16685 18.3804 4.39294 18.0448 4.68857 17.777C4.9842 17.5093 5.34051 17.3174 5.72679 17.218C6.01679 17.142 6.39378 17.135 7.47278 17.135Z"
+        d="M6.23 14.28H16.67C16.66 15.22 16.65 15.92 16.56 16.46C16.47 17.12 16.31 17.47 16.06 17.72C15.8 17.97 15.45 18.13 14.77 18.22C14.08 18.32 13.16 18.32 11.84 18.32H8.16C6.84 18.32 5.92 18.32 5.23 18.22C4.55 18.13 4.19 17.97 3.94 17.72C3.68 17.47 3.52 17.12 3.43 16.46C3.4 16.2 3.37 15.95 3.35 15.63C3.47 15.32 3.66 15.04 3.91 14.81C4.16 14.58 4.45 14.41 4.77 14.33C5.01 14.27 5.28 14.28 6.23 14.28Z"
         fill="currentColor"
       />
     </svg>
@@ -36,7 +40,7 @@ type WorkImpactScreenProps = {
   contentTopClass: string;
 };
 
-/** ScreenTeaserWorkSalary — Figma `71:772` */
+/** Figma `109:2004` ScreenTeaserWorkSalary — centered copy + Pearson note. */
 export function WorkImpactScreen({
   parts,
   onContinue,
@@ -45,7 +49,7 @@ export function WorkImpactScreen({
   return (
     <>
       <div
-        className={`flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center gap-6 overflow-y-auto px-4 pb-36 ${contentTopClass}`}
+        className={`flex min-h-0 min-w-0 flex-1 flex-col items-stretch justify-center gap-6 overflow-y-auto px-4 ${quizStickyScrollGapBottom} ${contentTopClass}`}
       >
         <p className="w-full text-center text-[28px] font-semibold leading-8 tracking-[-1.4px]">
           <span className="text-[#05a8ff]">{parts.a}</span>
@@ -56,15 +60,16 @@ export function WorkImpactScreen({
           ) : null}
           <span className="text-white">{parts.d}</span>
         </p>
-        <div className="w-full max-w-[361px] px-8">
-          <div className="flex gap-2 rounded-lg bg-[#202227] p-3">
-            <BookIcon className="size-6 shrink-0 text-[#8a8d93]" />
-            <p className="min-w-0 flex-1 text-left text-[16px] font-normal leading-5 tracking-[-0.128px] text-[#8a8d93]">
+        <div className="mx-auto w-full max-w-[361px] px-1">
+          <div className="flex gap-2 px-1 py-2">
+            <BookIcon className="mt-0.5 size-5 shrink-0 text-white/90" />
+            <p className="min-w-0 flex-1 text-left text-[14px] font-normal leading-[18px] tracking-[-0.112px] text-white/80">
               {PEARSON_NOTE}
             </p>
           </div>
         </div>
       </div>
+      <QuizStickyFooterSlot />
       <ButtonWrapper>
         <PrimaryButton onClick={onContinue}>Continue</PrimaryButton>
       </ButtonWrapper>

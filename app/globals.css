@@ -17,6 +17,14 @@
     var(--Neutral-12, rgb(25, 26, 31)) 16%,
     var(--Neutral-12, rgb(25, 26, 31)) 100%
   );
+  /* Figma ScreenGeneral* — white → pale blue sheet (`87:1278`, `99:1408`, …) */
+  --quiz-funnel-general-bg: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #ffffff 88%,
+    #f2fbff 92%,
+    #cdf0fe 100%
+  );
 }
 
 @keyframes quiz-screen-in-fwd {
@@ -72,9 +80,8 @@
   background: var(--background-gradient);
 }
 
-/* Safari: heavy SVG feGaussianBlur masks rasterize badly; orb uses CSS glow instead. */
-.mascot-body-img {
-  filter: drop-shadow(0 6px 16px rgba(5, 168, 255, 0.42));
+.quiz-shell-funnel-general {
+  background: var(--quiz-funnel-general-bg);
 }
 
 @keyframes mascot-eye-look {
