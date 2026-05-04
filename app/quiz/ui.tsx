@@ -123,9 +123,11 @@ export function Mascot() {
           <Image
             src={quizAssets.mascotBody}
             alt=""
-            width={64}
-            height={64}
-            className="size-full max-w-none"
+            width={88}
+            height={88}
+            sizes="96px"
+            unoptimized
+            className="size-full max-w-none object-contain object-center"
           />
         </div>
       </div>
@@ -136,9 +138,11 @@ export function Mascot() {
               <Image
                 src={quizAssets.mascotEyes}
                 alt=""
-                width={26}
-                height={14}
-                className="size-full max-w-none"
+                width={50}
+                height={38}
+                sizes="52px"
+                unoptimized
+                className="size-full max-w-none object-contain object-center"
               />
             </div>
           </div>

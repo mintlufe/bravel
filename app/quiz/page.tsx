@@ -340,16 +340,18 @@ export default function QuizPage() {
     inner = null;
   }
 
-  /** Figma `39:754` ScreenGeneral background on every step except ScreenStart */
+  /** ScreenStart: match Neutral-12 (`#191a1f`) so seams/gaps don’t show pure black vs card. */
   const fullBleedShell =
     !done && step?.kind === "start"
-      ? "bg-black"
+      ? "bg-[#191a1f]"
       : "quiz-shell-gradient";
 
   return (
-    <div className={`min-h-[100dvh] w-full ${fullBleedShell}`}>
+    <div
+      className={`min-h-[100dvh] min-h-[100svh] w-full ${fullBleedShell}`}
+    >
     <QuizFrame>
-      <div className="flex min-h-[100dvh] flex-col">
+      <div className="flex min-h-[100svh] min-h-[100dvh] flex-col">
         {progressMeta ? (
           <div className="shrink-0 px-4 pt-14">
             <ProgressBar
