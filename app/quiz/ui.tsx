@@ -236,22 +236,20 @@ type TitleTextRowProps = {
   onSelect: () => void;
 };
 
+/** Start-option row: emoji aligned with title; chevron stays square — avoid self-stretch + fill (distorts SVG). */
 export function TitleTextRow({ option, onSelect }: TitleTextRowProps) {
   return (
     <button
       type="button"
       onClick={onSelect}
-      className="quiz-transition-interactive flex w-full items-center gap-3 rounded-[16px] bg-[#202227] p-4 text-left hover:bg-[#292c32] active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#05a8ff]"
+      className="quiz-transition-interactive flex w-full items-start gap-3 rounded-[16px] bg-[#202227] p-4 text-left hover:bg-[#292c32] active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#05a8ff]"
     >
-      <div className="relative flex size-8 shrink-0 items-center justify-center overflow-visible">
-        <span
-          className="select-none text-[28px] leading-none tracking-[-0.192px]"
-          style={{ fontFamily: "system-ui, Apple Color Emoji, Segoe UI Emoji" }}
-        >
+      <div className="flex w-6 shrink-0 flex-col items-center pt-0.5">
+        <span className="select-none text-[24px] leading-6 tracking-[-0.192px]">
           {option.emoji}
         </span>
       </div>
-      <div className="flex min-w-0 flex-1 flex-col items-start justify-center gap-2 text-[16px] not-italic">
+      <div className="flex min-w-0 flex-1 flex-col items-start gap-2 text-[16px] not-italic">
         <p className="w-full text-left font-semibold leading-[18px] tracking-[-0.32px] text-white">
           {option.title}
         </p>
@@ -262,7 +260,7 @@ export function TitleTextRow({ option, onSelect }: TitleTextRowProps) {
         ) : null}
       </div>
       {option.showChevron ? (
-        <div className="relative size-5 shrink-0 overflow-hidden">
+        <div className="relative size-5 shrink-0 self-center overflow-hidden">
           <span className="absolute inset-[20.83%_37.5%] block">
             <Image
               src={quizAssets.chevronRight}
