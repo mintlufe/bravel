@@ -148,7 +148,7 @@ export default function QuizPage() {
   } else if (step?.kind === "start") {
     inner = (
       <div
-        className={`flex h-full min-h-0 min-w-0 flex-1 flex-col ${contentPadTop}`}
+        className={`flex min-h-0 min-w-0 flex-1 flex-col ${contentPadTop}`}
       >
         <ScreenStart
           headline={step.headline}
@@ -340,18 +340,18 @@ export default function QuizPage() {
     inner = null;
   }
 
-  /** ScreenStart: match Neutral-12 (`#191a1f`) so seams/gaps don’t show pure black vs card. */
+  /** ScreenStart: full-bleed base black; OptionsWrapper alone carries the sheet gradient. */
   const fullBleedShell =
     !done && step?.kind === "start"
-      ? "bg-[#191a1f]"
+      ? "bg-black"
       : "quiz-shell-gradient";
 
   return (
     <div
-      className={`min-h-[100dvh] min-h-[100svh] w-full ${fullBleedShell}`}
+      className={`flex min-h-0 w-full flex-1 flex-col ${fullBleedShell}`}
     >
     <QuizFrame>
-      <div className="flex min-h-[100svh] min-h-[100dvh] flex-col">
+      <div className="flex min-h-0 flex-1 flex-col">
         {progressMeta ? (
           <div className="shrink-0 px-4 pt-14">
             <ProgressBar

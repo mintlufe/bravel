@@ -50,13 +50,13 @@ type QuizFrameProps = {
 };
 
 /**
- * 393px column over a full-bleed shell: parent sets `bg-black` (ScreenStart) or
+ * 393px column over a full-bleed shell: parent sets base `bg-black` (ScreenStart) or
  * `.quiz-shell-gradient` (ScreenGeneral `39:754` and all other quiz steps).
  */
 export function QuizFrame({ children }: QuizFrameProps) {
   return (
     <div
-      className={`${inter} mx-auto flex min-h-[100dvh] w-full max-w-[393px] flex-col overflow-x-hidden bg-transparent text-white`}
+      className={`${inter} mx-auto flex min-h-0 w-full max-w-[393px] flex-1 flex-col overflow-x-hidden bg-transparent text-white`}
     >
       {children}
     </div>
@@ -115,34 +115,40 @@ export function SocialProof() {
   );
 }
 
+/**
+ * Native `<img>` for SVG mascots — Safari often softens filtered SVGs when routed
+ * through `next/image`. GPU layer hints reduce blur from filters + compositing.
+ */
 export function Mascot() {
   return (
-    <div className="relative size-16 shrink-0">
+    <div className="relative size-16 shrink-0 overflow-visible [transform:translateZ(0)]">
       <div className="absolute left-0 top-0 size-16">
         <div className="absolute inset-[-18.75%]">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={quizAssets.mascotBody}
             alt=""
             width={88}
             height={88}
-            sizes="96px"
-            unoptimized
-            className="size-full max-w-none object-contain object-center"
+            decoding="async"
+            draggable={false}
+            className="size-full max-h-none max-w-none object-contain object-center [image-rendering:auto]"
           />
         </div>
       </div>
-      <div className="mascot-eyes-look absolute left-[21.34px] top-[17.08px] flex h-[18.115px] w-[27.961px] items-center justify-center will-change-transform">
-        <div className="flex-none -rotate-[9.54deg]">
-          <div className="mascot-eyes-blink relative h-[14px] w-[26px] will-change-transform">
+      <div className="mascot-eyes-look absolute left-[21.34px] top-[17.08px] flex h-[18.115px] w-[27.961px] items-center justify-center [transform:translateZ(0)] will-change-transform">
+        <div className="flex-none -rotate-[9.54deg] [transform:translateZ(0)]">
+          <div className="mascot-eyes-blink relative h-[14px] w-[26px] [transform:translateZ(0)] will-change-transform">
             <div className="absolute inset-[-71.43%_-46.15%_-100%_-46.15%]">
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={quizAssets.mascotEyes}
                 alt=""
                 width={50}
                 height={38}
-                sizes="52px"
-                unoptimized
-                className="size-full max-w-none object-contain object-center"
+                decoding="async"
+                draggable={false}
+                className="size-full max-h-none max-w-none object-contain object-center [image-rendering:auto]"
               />
             </div>
           </div>
@@ -234,10 +240,13 @@ export function TitleTextRow({ option, onSelect }: TitleTextRowProps) {
     <button
       type="button"
       onClick={onSelect}
-      className="quiz-transition-interactive flex w-full items-start gap-3 rounded-[16px] bg-[#202227] p-4 text-left hover:bg-[#292c32] active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#05a8ff]"
+      className="quiz-transition-interactive flex w-full items-center gap-3 rounded-[16px] bg-[#202227] p-4 text-left hover:bg-[#292c32] active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#05a8ff]"
     >
-      <div className="relative size-6 shrink-0">
-        <span className="absolute inset-0 text-[24px] leading-6 tracking-[-0.192px]">
+      <div className="relative flex size-8 shrink-0 items-center justify-center overflow-visible">
+        <span
+          className="select-none text-[28px] leading-none tracking-[-0.192px]"
+          style={{ fontFamily: "system-ui, Apple Color Emoji, Segoe UI Emoji" }}
+        >
           {option.emoji}
         </span>
       </div>

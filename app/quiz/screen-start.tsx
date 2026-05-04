@@ -21,7 +21,7 @@ export function ScreenStart({
   onOptionSelect,
 }: ScreenStartProps) {
   return (
-    <div className="flex h-full min-h-0 w-full flex-1 flex-col gap-10">
+    <div className="flex min-h-0 w-full flex-1 flex-col gap-10 overflow-y-auto overflow-x-hidden">
       <div className="flex w-full shrink-0 flex-col gap-6 px-4">
         <SocialProof />
         <p className="w-full min-w-0 text-center text-[32px] font-semibold leading-[32px] tracking-[-1.6px] text-white">
