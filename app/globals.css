@@ -72,6 +72,11 @@
   background: var(--background-gradient);
 }
 
+/* Safari: heavy SVG feGaussianBlur masks rasterize badly; orb uses CSS glow instead. */
+.mascot-body-img {
+  filter: drop-shadow(0 6px 16px rgba(5, 168, 255, 0.42));
+}
+
 @keyframes mascot-eye-look {
   0%,
   100% {

@@ -116,12 +116,12 @@ export function SocialProof() {
 }
 
 /**
- * Native `<img>` for SVG mascots — Safari often softens filtered SVGs when routed
- * through `next/image`. GPU layer hints reduce blur from filters + compositing.
+ * SVG mascots use `<img>` (not `next/image`) and assets avoid heavy SVG filters
+ * (Safari rasterizes those badly). Soft rim glow is CSS `drop-shadow` on the body only.
  */
 export function Mascot() {
   return (
-    <div className="relative size-16 shrink-0 overflow-visible [transform:translateZ(0)]">
+    <div className="relative size-16 shrink-0 overflow-visible">
       <div className="absolute left-0 top-0 size-16">
         <div className="absolute inset-[-18.75%]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -130,15 +130,16 @@ export function Mascot() {
             alt=""
             width={88}
             height={88}
-            decoding="async"
+            decoding="sync"
+            fetchPriority="high"
             draggable={false}
-            className="size-full max-h-none max-w-none object-contain object-center [image-rendering:auto]"
+            className="size-full max-h-none max-w-none object-contain object-center mascot-body-img"
           />
         </div>
       </div>
-      <div className="mascot-eyes-look absolute left-[21.34px] top-[17.08px] flex h-[18.115px] w-[27.961px] items-center justify-center [transform:translateZ(0)] will-change-transform">
-        <div className="flex-none -rotate-[9.54deg] [transform:translateZ(0)]">
-          <div className="mascot-eyes-blink relative h-[14px] w-[26px] [transform:translateZ(0)] will-change-transform">
+      <div className="mascot-eyes-look absolute left-[21.34px] top-[17.08px] flex h-[18.115px] w-[27.961px] items-center justify-center will-change-transform">
+        <div className="flex-none -rotate-[9.54deg]">
+          <div className="mascot-eyes-blink relative h-[14px] w-[26px] will-change-transform">
             <div className="absolute inset-[-71.43%_-46.15%_-100%_-46.15%]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -146,9 +147,9 @@ export function Mascot() {
                 alt=""
                 width={50}
                 height={38}
-                decoding="async"
+                decoding="sync"
                 draggable={false}
-                className="size-full max-h-none max-w-none object-contain object-center [image-rendering:auto]"
+                className="size-full max-h-none max-w-none object-contain object-center mascot-eyes-img"
               />
             </div>
           </div>
