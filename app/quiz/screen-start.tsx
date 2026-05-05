@@ -29,8 +29,10 @@ export function ScreenStart({
   onOptionSelect,
 }: ScreenStartProps) {
   return (
-    <div className="relative flex min-h-0 w-full flex-1 flex-col overflow-x-visible overflow-y-visible bg-gradient-to-b from-[#05a8ff] to-[#057ccc] pt-10">
-      <VectorBeamsBackground />
+    <div className="relative flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-gradient-to-b from-[#05a8ff] to-[#057ccc] pt-10">
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+        <VectorBeamsBackground />
+      </div>
       <div className="relative z-[1] flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-y-auto">
         <div className="flex w-full shrink-0 flex-col gap-6 px-4 pb-6">
           <p className="w-full min-w-0 text-center text-[32px] font-semibold leading-8 tracking-[-1.6px] text-white">

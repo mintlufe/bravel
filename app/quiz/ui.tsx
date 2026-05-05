@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useLayoutEffect, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import type { CheckboxOption, SubtleOption, TitleTextOption } from "./steps";
@@ -729,13 +729,38 @@ export function PlainRow({ option, onSelect }: PlainRowProps) {
 
 export function ButtonWrapper({ children }: { children: React.ReactNode }) {
   const [container, setContainer] = useState<HTMLElement | null>(null);
+  /** Pixels to lift the bar above the on-screen keyboard (visual viewport). */
+  const [keyboardOverlap, setKeyboardOverlap] = useState(0);
 
   useLayoutEffect(() => {
     setContainer(document.body);
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const syncKeyboardOverlap = () => {
+      const overlap = Math.max(
+        0,
+        window.innerHeight - vv.height - vv.offsetTop,
+      );
+      setKeyboardOverlap(overlap);
+    };
+    syncKeyboardOverlap();
+    vv.addEventListener("resize", syncKeyboardOverlap);
+    vv.addEventListener("scroll", syncKeyboardOverlap);
+    return () => {
+      vv.removeEventListener("resize", syncKeyboardOverlap);
+      vv.removeEventListener("scroll", syncKeyboardOverlap);
+    };
+  }, []);
+
   const bar = (
-    <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-50 flex justify-center">
+    <div
+      className="pointer-events-none fixed left-0 right-0 z-50 flex justify-center transition-[bottom] duration-150 ease-out"
+      style={{ bottom: keyboardOverlap }}
+    >
       <div
         className="pointer-events-auto flex w-full max-w-[393px] flex-col items-stretch bg-[rgba(25,26,31,0.01)] px-4 pt-0 backdrop-blur-[6px]"
         style={{

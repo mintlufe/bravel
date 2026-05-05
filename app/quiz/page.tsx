@@ -28,6 +28,7 @@ import {
   TitleTextRow,
   QuizStickyFooterSlot,
   VectorBeamsBackground,
+  quizStickyBottomScrollMargin,
   quizStickyScrollGapBottom,
 } from "./ui";
 import {
@@ -225,6 +226,8 @@ export default function QuizPage() {
     null,
   );
   const [subtleOtherText, setSubtleOtherText] = useState("");
+  /** Free text when multi-select “None of the above” (custom) is chosen. */
+  const [multiNoneCustomText, setMultiNoneCustomText] = useState("");
   const [emailDraft, setEmailDraft] = useState("");
   const [selectedAgeGroupId, setSelectedAgeGroupId] = useState<string | null>(
     null,
@@ -313,6 +316,7 @@ export default function QuizPage() {
   }, []);
 
   const subtleScrollRef = useRef<HTMLDivElement | null>(null);
+  const multiScrollRef = useRef<HTMLDivElement | null>(null);
 
   const ensureSubtleCustomRowVisible = useCallback(() => {
     const scrollEl = subtleScrollRef.current;
@@ -333,6 +337,29 @@ export default function QuizPage() {
   const clampSubtleScrollMaxGap = useCallback(() => {
     const scrollEl = subtleScrollRef.current;
     const row = document.getElementById("quiz-subtle-custom-row");
+    if (!scrollEl || !row || !(row instanceof HTMLElement)) return;
+    clampSubtleInputButtonGapMax(scrollEl, row);
+  }, []);
+
+  const ensureMultiNoneRowVisible = useCallback(() => {
+    const scrollEl = multiScrollRef.current;
+    const row = document.getElementById("quiz-multi-none-custom-row");
+    if (!scrollEl || !row || !(row instanceof HTMLElement)) return;
+    const run = () => {
+      scrollQuizFieldAboveStickyFooter(scrollEl, row);
+      clampSubtleInputButtonGapMax(scrollEl, row);
+    };
+    run();
+    requestAnimationFrame(run);
+    requestAnimationFrame(() => requestAnimationFrame(run));
+    window.setTimeout(run, 0);
+    window.setTimeout(run, 32);
+    window.setTimeout(run, 120);
+  }, []);
+
+  const clampMultiScrollMaxGap = useCallback(() => {
+    const scrollEl = multiScrollRef.current;
+    const row = document.getElementById("quiz-multi-none-custom-row");
     if (!scrollEl || !row || !(row instanceof HTMLElement)) return;
     clampSubtleInputButtonGapMax(scrollEl, row);
   }, []);
@@ -367,9 +394,63 @@ export default function QuizPage() {
     return () => el.removeEventListener("scroll", clampSubtleScrollMaxGap);
   }, [step, subtleOtherText, clampSubtleScrollMaxGap]);
 
+  useLayoutEffect(() => {
+    if (step?.kind !== "multi") return;
+    if (!multiSelected.has("none")) return;
+    const hasNoneCustom = step.options.some(
+      (o) => o.id === "none" && o.allowCustomText,
+    );
+    if (!hasNoneCustom) return;
+    ensureMultiNoneRowVisible();
+  }, [
+    step,
+    multiSelected,
+    multiNoneCustomText,
+    ensureMultiNoneRowVisible,
+  ]);
+
+  useEffect(() => {
+    if (step?.kind !== "multi") return;
+    if (!multiSelected.has("none")) return;
+    const hasNoneCustom = step.options.some(
+      (o) => o.id === "none" && o.allowCustomText,
+    );
+    if (!hasNoneCustom) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onViewportChange = () => ensureMultiNoneRowVisible();
+    vv.addEventListener("resize", onViewportChange);
+    vv.addEventListener("scroll", onViewportChange);
+    return () => {
+      vv.removeEventListener("resize", onViewportChange);
+      vv.removeEventListener("scroll", onViewportChange);
+    };
+  }, [step, multiSelected, ensureMultiNoneRowVisible]);
+
+  useEffect(() => {
+    if (step?.kind !== "multi") return;
+    if (!multiSelected.has("none")) return;
+    const hasNoneCustom = step.options.some(
+      (o) => o.id === "none" && o.allowCustomText,
+    );
+    if (!hasNoneCustom) return;
+    const el = multiScrollRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", clampMultiScrollMaxGap, { passive: true });
+    clampMultiScrollMaxGap();
+    return () => el.removeEventListener("scroll", clampMultiScrollMaxGap);
+  }, [step, multiSelected, clampMultiScrollMaxGap]);
+
   useEffect(() => {
     setSubtleOtherText("");
+    setMultiNoneCustomText("");
   }, [index]);
+
+  useEffect(() => {
+    if (!multiSelected.has("none")) {
+      setMultiNoneCustomText("");
+    }
+  }, [multiSelected]);
 
   useEffect(() => {
     if (index === 0) {
@@ -404,8 +485,15 @@ export default function QuizPage() {
   const toggleMulti = useCallback((id: string) => {
     setMultiSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+        return next;
+      }
+      if (id === "none") {
+        return new Set<string>(["none"]);
+      }
+      next.delete("none");
+      next.add(id);
       return next;
     });
   }, []);
@@ -466,10 +554,6 @@ export default function QuizPage() {
     }
     return { shell: "quiz-shell-gradient", frame: "text-white", beams: false } as const;
   }, [step]);
-
-  /** Start embeds beams inside {@link ScreenStart}; still needs overflow visible on the frame. */
-  const allowBeamHorizontalOverflow =
-    !!step && (shell.beams || step.kind === "start");
 
   const showGlobalProgress =
     step &&
@@ -668,10 +752,18 @@ export default function QuizPage() {
       </div>
     );
   } else if (step?.kind === "multi") {
-    const canContinue = multiSelected.size > 0;
+    const noneCustomOpt = step.options.find(
+      (o) => o.allowCustomText && o.id === "none",
+    );
+    const showMultiNoneInput =
+      !!noneCustomOpt && multiSelected.has("none");
+    const canContinue =
+      multiSelected.size > 0 &&
+      (!showMultiNoneInput || multiNoneCustomText.trim().length > 0);
     inner = (
       <>
         <div
+          ref={multiScrollRef}
           className={`flex min-h-0 flex-1 flex-col gap-10 overflow-y-auto px-4 ${quizStickyScrollGapBottom} ${contentPadTop}`}
         >
           <div className="flex flex-col gap-10">
@@ -697,6 +789,37 @@ export default function QuizPage() {
                   onToggle={() => toggleMulti(opt.id)}
                 />
               ))}
+              {showMultiNoneInput ? (
+                <div
+                  id="quiz-multi-none-custom-row"
+                  className={`quiz-transition-interactive flex min-h-14 w-full items-center gap-3 rounded-2xl border border-[#ebeef5] bg-[#f5f6fa] p-4 focus-within:ring-1 focus-within:ring-[#05a8ff] ${quizStickyBottomScrollMargin}`}
+                >
+                  <span
+                    className="shrink-0 text-[24px] leading-6 tracking-[-0.192px]"
+                    aria-hidden
+                  >
+                    ✍️
+                  </span>
+                  <input
+                    type="text"
+                    value={multiNoneCustomText}
+                    onChange={(e) => setMultiNoneCustomText(e.target.value)}
+                    placeholder="Tell us in your own words"
+                    autoComplete="off"
+                    aria-label="Describe what gets in your way"
+                    className="min-h-0 min-w-0 flex-1 border-0 bg-transparent p-0 text-[16px] font-medium leading-4 tracking-[-0.32px] text-[#22262f] outline-none placeholder:text-[#7a8399] focus:outline-none focus-visible:ring-0"
+                    onKeyDown={(e) => {
+                      if (
+                        e.key === "Enter" &&
+                        multiNoneCustomText.trim().length > 0
+                      ) {
+                        goNext();
+                      }
+                    }}
+                    onFocus={() => ensureMultiNoneRowVisible()}
+                  />
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -847,26 +970,23 @@ export default function QuizPage() {
   }
 
   return (
-    <div className={`flex min-h-0 w-full flex-1 flex-col ${shell.shell}`}>
-      <QuizFrame
-        allowHorizontalOverflow={allowBeamHorizontalOverflow}
-        className={shell.frame}
-      >
-        <div
-          className={`relative flex min-h-0 min-w-0 flex-1 flex-col ${
-            allowBeamHorizontalOverflow ? "overflow-x-visible" : "overflow-x-hidden"
-          }`}
-        >
+    <div
+      className={`flex min-h-0 w-full max-w-[100vw] flex-1 touch-pan-y flex-col overflow-x-hidden overflow-y-hidden overscroll-x-none ${shell.shell}`}
+    >
+      <QuizFrame className={shell.frame}>
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           {shell.beams ? (
-            <VectorBeamsBackground
-              variant={
-                step?.kind === "work-impact-teaser"
-                  ? "workImpact"
-                  : step?.kind === "summary" || step?.kind === "referral"
-                    ? "center"
-                    : "default"
-              }
-            />
+            <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+              <VectorBeamsBackground
+                variant={
+                  step?.kind === "work-impact-teaser"
+                    ? "workImpact"
+                    : step?.kind === "summary" || step?.kind === "referral"
+                      ? "center"
+                      : "default"
+                }
+              />
+            </div>
           ) : null}
           <div
             className={`relative z-[1] flex min-h-0 min-w-0 flex-1 flex-col ${

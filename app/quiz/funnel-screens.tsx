@@ -56,20 +56,24 @@ export function TeaserContinueScreen({
         <div className="flex w-full shrink-0 justify-center px-10">
           <div className="h-4 w-full rounded-t-2xl bg-[#70cfff]" />
         </div>
-        <div className="flex min-h-0 flex-1 flex-col rounded-t-[32px] bg-white">
-          <div className="min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
-          <div
-            className="shrink-0 px-4 pt-3"
-            style={{
-              paddingBottom: "max(1rem, env(safe-area-inset-bottom, 0px))",
-            }}
-          >
-            <SheetBlackButton
-              onClick={onContinue}
-              tone={ctaSuccessActive ? "success" : "default"}
-            >
-              {ctaSuccessActive ? ctaSuccessLabel : ctaLabel}
-            </SheetBlackButton>
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-t-[32px] bg-white">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+            <div className="flex min-h-full min-w-0 flex-col">
+              <div className="flex w-full flex-1 flex-col p-4">{children}</div>
+              <div
+                className="sticky bottom-0 z-10 shrink-0 bg-[rgba(25,26,31,0.01)] px-4 pt-3 backdrop-blur-[6px]"
+                style={{
+                  paddingBottom: "max(1rem, env(safe-area-inset-bottom, 0px))",
+                }}
+              >
+                <SheetBlackButton
+                  onClick={onContinue}
+                  tone={ctaSuccessActive ? "success" : "default"}
+                >
+                  {ctaSuccessActive ? ctaSuccessLabel : ctaLabel}
+                </SheetBlackButton>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -366,10 +370,11 @@ export function CalculatingScreen({
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-10 overflow-y-auto bg-white px-4 pb-4 pt-4">
-      <div className="shrink-0">{progressBar}</div>
-      <div className="flex flex-col items-center gap-6">
-        <div className="relative size-[200px] shrink-0">
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-white px-4 pb-4 pt-4">
+      <div className="flex shrink-0 flex-col gap-6">
+        <div className="shrink-0">{progressBar}</div>
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative size-[200px] shrink-0">
           <svg
             width="200"
             height="200"
@@ -478,8 +483,9 @@ export function CalculatingScreen({
             );
           })}
         </ul>
+        </div>
       </div>
-      <div className="mt-auto flex flex-col items-center gap-4">
+      <div className="mt-auto flex flex-col items-center gap-4 pt-10">
         <div
           className="flex h-[180px] w-full touch-pan-y select-none flex-col overflow-hidden rounded-[20px] bg-[#f5f6fa] p-4"
           role="region"
@@ -710,10 +716,22 @@ export function EmailCaptureScreen({
   const displayErrorMessage =
     revealInvalidEmail && errorMessage ? errorMessage : null;
 
+  const emailInputRef = useRef<HTMLInputElement | null>(null);
+
+  const scrollEmailFieldIntoView = useCallback(() => {
+    const el = emailInputRef.current;
+    if (!el) return;
+    const run = () =>
+      el.scrollIntoView({ block: "nearest", inline: "nearest" });
+    requestAnimationFrame(run);
+    window.setTimeout(run, 120);
+    window.setTimeout(run, 360);
+  }, []);
+
   return (
     <>
       <div
-        className={`flex min-h-0 flex-1 flex-col overflow-y-auto bg-white px-4 ${quizStickyScrollGapBottom} pt-4`}
+        className={`flex min-h-0 flex-1 flex-col scroll-pb-32 overflow-y-auto bg-white px-4 ${quizStickyScrollGapBottom} pt-4`}
       >
         <div className="shrink-0">{progressBar}</div>
         <div className="flex min-h-0 flex-1 flex-col justify-center">
@@ -734,6 +752,7 @@ export function EmailCaptureScreen({
               <div className="mx-auto flex w-full max-w-[280px] flex-col gap-3">
                 <div className="relative w-full">
                   <input
+                    ref={emailInputRef}
                     type="email"
                     autoComplete="email"
                     placeholder="you@email.com"
@@ -742,6 +761,7 @@ export function EmailCaptureScreen({
                     onFocus={() => {
                       setFocused(true);
                       setRevealInvalidEmail(false);
+                      scrollEmailFieldIntoView();
                     }}
                     onBlur={() => {
                       setFocused(false);

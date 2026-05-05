@@ -6,7 +6,13 @@ export type TitleTextOption = {
   showChevron?: boolean;
 };
 
-export type CheckboxOption = { id: string; label: string; emoji?: string };
+export type CheckboxOption = {
+  id: string;
+  label: string;
+  emoji?: string;
+  /** When true (e.g. “None of the above”), selection opens a free-text field. */
+  allowCustomText?: boolean;
+};
 
 export type SubtleOption = {
   id: string;
@@ -189,7 +195,12 @@ export const steps: QuizStep[] = [
       { id: "accent", emoji: "👂", label: "My accent feels unclear" },
       { id: "grammar", emoji: "✍️", label: "I make grammar mistakes" },
       { id: "speed", emoji: "🐢", label: "I can’t reply fast enough" },
-      { id: "none", emoji: "🚫", label: "None of the above" },
+      {
+        id: "none",
+        emoji: "🚫",
+        label: "None of the above",
+        allowCustomText: true,
+      },
     ],
   },
   {
@@ -213,7 +224,13 @@ export const steps: QuizStep[] = [
       { id: "services", emoji: "🛠️", label: "Services & Skilled Jobs" },
       { id: "marketing", emoji: "📈", label: "Marketing & Sales" },
       { id: "not-working", emoji: "✨", label: "Not working right now" },
-      { id: "other-work", emoji: "✍️", label: "Other", muted: true },
+      {
+        id: "other-work",
+        emoji: "✍️",
+        label: "Other",
+        muted: true,
+        allowCustomText: true,
+      },
     ],
   },
   { kind: "work-impact-teaser", progress: 8, total: QUIZ_TOTAL },
