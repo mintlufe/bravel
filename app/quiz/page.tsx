@@ -616,6 +616,32 @@ export default function QuizPage() {
     });
   }, [multiNoneCustomText, step]);
 
+  useEffect(() => {
+    if (step?.kind !== "multi") return;
+    if (step.question !== "What gets in your way when you speak English?") return;
+    if (!multiSelected.has("none")) return;
+
+    const selectedLabels = Array.from(multiSelected)
+      .map((selectedId) => {
+        const selectedOpt = step.options.find((o) => o.id === selectedId);
+        if (!selectedOpt) return null;
+        if (selectedOpt.id === "none" && selectedOpt.allowCustomText) {
+          const custom = multiNoneCustomText.trim();
+          return custom.length > 0 ? custom : selectedOpt.label;
+        }
+        return selectedOpt.label;
+      })
+      .filter((label): label is string => !!label);
+
+    setCentralizedAnswers((prevAnswers) => ({
+      ...prevAnswers,
+      speakingBlockers: {
+        question: "What gets in your way when you speak English?",
+        answer: selectedLabels,
+      },
+    }));
+  }, [multiNoneCustomText, multiSelected, step]);
+
   const screenKey = `step-${index}`;
 
   const shell = useMemo(() => {
@@ -717,6 +743,7 @@ export default function QuizPage() {
       step.kind === "referral" ||
       step.kind === "work-impact-teaser" ||
       step.kind === "quiz-success");
+  const hasDecorativeBeams = shell.beams || step?.kind === "start";
 
   const progressSurfaceForEmbedded = useMemo(() => {
     if (!step) return "onBlue" as const;
@@ -1251,10 +1278,17 @@ export default function QuizPage() {
         step?.kind === "email-permission" ? " pt-4" : ""
       }`}
     >
-      <QuizFrame className={shell.frame}>
-        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <QuizFrame
+        className={shell.frame}
+        allowHorizontalOverflow={hasDecorativeBeams}
+      >
+        <div
+          className={`relative flex min-h-0 min-w-0 flex-1 flex-col ${
+            hasDecorativeBeams ? "overflow-visible" : "overflow-hidden"
+          }`}
+        >
           {shell.beams ? (
-            <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+            <div className="pointer-events-none absolute inset-0 z-0">
               <VectorBeamsBackground
                 variant={
                   step?.kind === "work-impact-teaser"

@@ -77,6 +77,7 @@ export async function POST(request: Request) {
       `Permission to receive emails: ${permissionText}`,
       "",
       "Answers:",
+      "",
       formatAnswers(answers),
     ].join("\n");
 
