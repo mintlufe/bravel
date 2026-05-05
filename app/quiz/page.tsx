@@ -1128,6 +1128,18 @@ export default function QuizPage() {
                         },
                       }));
                     }
+                    if (
+                      step.question ===
+                      "What kind of AI tutor would help you most?"
+                    ) {
+                      setCentralizedAnswers((prev) => ({
+                        ...prev,
+                        aiTutorPreference: {
+                          question: "What kind of AI tutor would help you most?",
+                          answer: opt.label,
+                        },
+                      }));
+                    }
                     if (isWorkField) {
                       setSelectedWorkFieldId(opt.id);
                       setCentralizedAnswers((prev) => ({

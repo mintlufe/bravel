@@ -71,7 +71,7 @@ export async function POST(request: Request) {
         : "Not answered";
 
     const message = [
-      "New quiz submission",
+      "New quiz submission 🎉",
       "",
       `Email: ${email ?? "N/A"}`,
       `Permission to receive emails: ${permissionText}`,

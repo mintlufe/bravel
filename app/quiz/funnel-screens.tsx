@@ -726,8 +726,6 @@ export function EmailCaptureScreen({
   const showStatusIcon = showValidIcon || showInvalidIcon;
   const displayErrorMessage =
     revealInvalidEmail && errorMessage ? errorMessage : null;
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
 
   const emailInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -741,32 +739,10 @@ export function EmailCaptureScreen({
     window.setTimeout(run, 360);
   }, []);
 
-  const handleSubmit = useCallback(async () => {
-    if (!valid || submitting) return;
-    setSubmitError(null);
-    setSubmitting(true);
-
-    try {
-      const emailDraft = trimmed;
-
-      const response = await fetch("/api/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: emailDraft, answers }),
-      });
-
-      if (!response.ok) {
-        setSubmitError("Something went wrong. Please try again.");
-        return;
-      }
-
-      onContinue();
-    } catch {
-      setSubmitError("Something went wrong. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  }, [onContinue, submitting, trimmed, valid]);
+  const handleSubmit = useCallback(() => {
+    if (!valid) return;
+    onContinue();
+  }, [onContinue, valid]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-white px-4 pb-6 pt-4">
@@ -807,9 +783,9 @@ export function EmailCaptureScreen({
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       setRevealInvalidEmail(true);
-                      if (valid && !submitting) {
+                      if (valid) {
                         e.preventDefault();
-                        void handleSubmit();
+                        handleSubmit();
                       }
                     }
                   }}
@@ -871,21 +847,11 @@ export function EmailCaptureScreen({
                 </p>
               ) : null}
               <SheetBlackButton
-                disabled={!valid || submitting}
-                onClick={() => {
-                  void handleSubmit();
-                }}
+                disabled={!valid}
+                onClick={handleSubmit}
               >
                 Continue
               </SheetBlackButton>
-              {submitError ? (
-                <p
-                  role="alert"
-                  className="text-center text-[14px] font-normal leading-[18px] tracking-[-0.084px] text-[#EE5542]"
-                >
-                  {submitError}
-                </p>
-              ) : null}
               <p className="text-center text-[14px] font-normal leading-[20px] tracking-[-0.112px] text-[#7a8399]">
                 By continuing, you agree to our{" "}
                 <span className="font-semibold">Terms of Use</span> and{" "}
