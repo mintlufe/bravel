@@ -35,6 +35,7 @@ export function TeaserContinueScreen({
   sheetTopSpacing = "loose",
   ctaSuccessActive = false,
   ctaSuccessLabel = "Link copied",
+  showTopCap = false,
 }: {
   hero: React.ReactNode;
   children: React.ReactNode;
@@ -45,19 +46,23 @@ export function TeaserContinueScreen({
   ctaSuccessLabel?: string;
   /** Referral: tight gap after progress only (`153:4461`). */
   sheetTopSpacing?: "compact" | "loose";
+  /** Small cyan cap above the white sheet. */
+  showTopCap?: boolean;
 }) {
-  /** Space between blue hero and white sheet — loose 24px (`gap-6`), compact 8px (`gap-2`). */
+  /** Space between blue hero and white sheet — loose 24px (`gap-6`), compact 16px (`gap-4`). */
   const heroSheetGap =
-    sheetTopSpacing === "compact" ? "gap-2" : "gap-6";
+    sheetTopSpacing === "compact" ? "gap-4" : "gap-6";
   return (
     <div
       className={`flex min-h-0 min-w-0 flex-1 flex-col ${heroSheetGap} overflow-x-hidden overflow-y-hidden`}
     >
       <div className="relative z-[1] flex shrink-0 flex-col gap-2">{hero}</div>
       <div className="relative z-[1] flex min-h-0 min-w-0 flex-1 flex-col">
-        <div className="flex w-full shrink-0 justify-center px-10">
-          <div className="h-4 w-full rounded-t-2xl bg-[#70cfff]" />
-        </div>
+        {showTopCap ? (
+          <div className="flex w-full shrink-0 justify-center px-10">
+            <div className="h-4 w-full rounded-t-2xl bg-[#70cfff]" />
+          </div>
+        ) : null}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-t-[32px] bg-white">
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
             <div className="flex min-h-full min-w-0 flex-col">
@@ -439,7 +444,7 @@ export function CalculatingScreen({
         <p className="text-center text-[28px] font-semibold leading-8 tracking-[-1.4px] text-black">
           Preparing your plan
         </p>
-        <ul className="flex w-full max-w-[293px] flex-col gap-3">
+        <ul className="flex w-full max-w-[329px] flex-col gap-3">
           {CALC_STEPS.map((label, i) => {
             const done = i < phase;
             const active = i === phase && phase < CALC_STEPS.length;
@@ -447,7 +452,7 @@ export function CalculatingScreen({
             return (
               <li
                 key={label}
-                className="flex items-center gap-2 text-left text-[16px] font-medium leading-4 tracking-[-0.32px] text-[#22262f]"
+                className="flex flex-nowrap items-center gap-2 overflow-hidden text-left text-[16px] font-medium leading-4 tracking-[-0.32px] text-[#22262f]"
               >
                 <div className="relative size-6 shrink-0">
                   <span
@@ -480,7 +485,9 @@ export function CalculatingScreen({
                     />
                   </span>
                 </div>
-                {label}
+                <span className="min-w-0 truncate whitespace-nowrap">
+                  {label}
+                </span>
               </li>
             );
           })}
@@ -1046,8 +1053,8 @@ function BookNote({ children }: { children: React.ReactNode }) {
 /** Figma `99:1895` — green “Why Bravel works” + loop art + {@link Mascot} (animated eyes). */
 export function TeaserLoopContent() {
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex w-full flex-col overflow-hidden rounded-2xl bg-[#18c362] pt-2">
+    <div className="flex flex-col">
+      <div className="mb-4 flex w-full flex-col overflow-hidden rounded-2xl bg-[#18c362] pt-2">
         <p className="pb-2 text-center text-[16px] font-semibold leading-[18px] tracking-[-0.32px] text-white">
           Why Bravel works
         </p>
@@ -1067,7 +1074,7 @@ export function TeaserLoopContent() {
         </div>
       </div>
       <BookNote>Based on Pearson English Impact research, 2024</BookNote>
-      <div className="flex flex-col gap-3">
+      <div className="mt-6 flex flex-col gap-3">
         <p className="text-[28px] font-semibold leading-8 tracking-[-1.4px] text-[#22262f]">
           It&apos;s more common than you think!
         </p>
@@ -1093,7 +1100,7 @@ export function TeaserRememberContent({
   body?: string;
 }) {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col">
       <div className="relative h-[278px] w-full overflow-hidden rounded-2xl border border-[#ebeef5] bg-white">
         <Image
           src={quizAssets.figmaTeaserRememberIllustration}
@@ -1103,10 +1110,11 @@ export function TeaserRememberContent({
           sizes="361px"
         />
       </div>
+      <div className="mt-4" />
       <BookNote>
         Bravel conversations train active recall in real time.
       </BookNote>
-      <div className="flex flex-col gap-3">
+      <div className="mt-6 flex flex-col gap-3">
         <p className="text-[28px] font-semibold leading-8 tracking-[-1.4px] text-[#22262f]">
           {title}
         </p>

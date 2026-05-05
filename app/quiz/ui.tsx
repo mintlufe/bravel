@@ -792,7 +792,7 @@ export function ButtonWrapper({ children }: { children: React.ReactNode }) {
       }}
     >
       <div
-        className="pointer-events-auto flex w-full max-w-[393px] flex-col items-stretch px-4 pt-0"
+        className="pointer-events-auto flex w-full max-w-[393px] flex-col items-stretch bg-transparent px-4 pt-0 backdrop-blur-0"
         style={{
           paddingBottom: "max(1rem, env(safe-area-inset-bottom, 0px))",
         }}
