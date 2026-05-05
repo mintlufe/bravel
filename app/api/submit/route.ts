@@ -1,8 +1,52 @@
+type QuizAnswer = {
+  question?: string;
+  answer?: string | string[];
+};
+
 type QuizSubmitBody = {
   email?: string;
-  answers?: unknown;
-  emailPermission?: boolean;
+  answers?: Record<string, QuizAnswer>;
+  emailPermission?: boolean | null;
 };
+
+const answerOrder = [
+  "gender",
+  "ageGroup",
+  "expressionStruggleFrequency",
+  "leftOutFrequency",
+  "speakingBlockers",
+  "workField",
+  "practiceTime",
+  "desiredEnglishFeeling",
+  "aiTutorPreference",
+] as const;
+
+function formatAnswerValue(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.length > 0 ? value.join(", ") : "Not answered";
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    return value;
+  }
+
+  return "Not answered";
+}
+
+function formatAnswers(answers?: Record<string, QuizAnswer>) {
+  if (!answers) return "No answers provided";
+
+  return answerOrder
+    .map((key, index) => {
+      const item = answers[key];
+
+      const question = item?.question || key;
+      const answer = formatAnswerValue(item?.answer);
+
+      return `${index + 1}. ${question}\n${answer}`;
+    })
+    .join("\n\n");
+}
 
 export async function POST(request: Request) {
   try {
@@ -19,19 +63,21 @@ export async function POST(request: Request) {
       );
     }
 
+    const permissionText =
+      typeof emailPermission === "boolean"
+        ? emailPermission
+          ? "Yes"
+          : "No"
+        : "Not answered";
+
     const message = [
       "New quiz submission",
+      "",
       `Email: ${email ?? "N/A"}`,
-      `Permission to receive emails: ${
-        typeof emailPermission === "boolean"
-          ? emailPermission
-            ? "Yes"
-            : "No"
-          : "No"
-      }`,
+      `Permission to receive emails: ${permissionText}`,
       "",
       "Answers:",
-      JSON.stringify(answers ?? null, null, 2),
+      formatAnswers(answers),
     ].join("\n");
 
     const telegramResponse = await fetch(
