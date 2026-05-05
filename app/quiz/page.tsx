@@ -60,6 +60,8 @@ const REFERRAL_INVITE_FALLBACK_URL =
 const QUIZ_SUMMARY_AMBIENT_SRC = "/quiz-assets/angel-choir-463220.mp3";
 const QUIZ_SUMMARY_AMBIENT_VOLUME = 0.42;
 const QUIZ_SUMMARY_AMBIENT_FADE_OUT_MS = 1400;
+const QUIZ_SUMMARY_AMBIENT_MAX_PLAY_RETRIES = 4;
+const QUIZ_SUMMARY_AMBIENT_RETRY_MS = 250;
 
 /** Ease-out cubic fade between two volumes; returns cancel (stops animation without calling `onComplete`). */
 function fadeAudioVolume(
@@ -245,6 +247,28 @@ export default function QuizPage() {
 
   const summaryAmbientAudioRef = useRef<HTMLAudioElement | null>(null);
   const summaryAmbientFadeCancelRef = useRef<(() => void) | null>(null);
+  const summaryAmbientPlayRetryTimeoutRef = useRef<number | null>(null);
+
+  const clearSummaryAmbientPlayRetry = useCallback(() => {
+    if (summaryAmbientPlayRetryTimeoutRef.current !== null) {
+      window.clearTimeout(summaryAmbientPlayRetryTimeoutRef.current);
+      summaryAmbientPlayRetryTimeoutRef.current = null;
+    }
+  }, []);
+
+  const attemptPlaySummaryAmbient = useCallback(
+    (audio: HTMLAudioElement, attempt: number = 0) => {
+      if (typeof window === "undefined") return;
+      clearSummaryAmbientPlayRetry();
+      void audio.play().catch(() => {
+        if (attempt >= QUIZ_SUMMARY_AMBIENT_MAX_PLAY_RETRIES) return;
+        summaryAmbientPlayRetryTimeoutRef.current = window.setTimeout(() => {
+          attemptPlaySummaryAmbient(audio, attempt + 1);
+        }, QUIZ_SUMMARY_AMBIENT_RETRY_MS * (attempt + 1));
+      });
+    },
+    [clearSummaryAmbientPlayRetry],
+  );
 
   useEffect(() => {
     const shouldPlaySummaryAmbient =
@@ -252,6 +276,7 @@ export default function QuizPage() {
       step.headline !== SUMMARY_HEADLINE_GET_STARTED;
 
     if (!shouldPlaySummaryAmbient) {
+      clearSummaryAmbientPlayRetry();
       const audio = summaryAmbientAudioRef.current;
       if (audio) {
         summaryAmbientFadeCancelRef.current?.();
@@ -273,6 +298,7 @@ export default function QuizPage() {
         );
       }
       return () => {
+        clearSummaryAmbientPlayRetry();
         summaryAmbientFadeCancelRef.current?.();
         summaryAmbientFadeCancelRef.current = null;
       };
@@ -288,19 +314,40 @@ export default function QuizPage() {
       return;
     }
 
-    if (summaryAmbientAudioRef.current !== null) {
-      summaryAmbientAudioRef.current.volume = QUIZ_SUMMARY_AMBIENT_VOLUME;
-      return;
+    const audio = summaryAmbientAudioRef.current ?? new Audio();
+    if (summaryAmbientAudioRef.current === null) {
+      audio.src = QUIZ_SUMMARY_AMBIENT_SRC;
+      audio.preload = "auto";
+      audio.loop = true;
+      audio.setAttribute("playsinline", "");
+      audio.load();
+      summaryAmbientAudioRef.current = audio;
     }
-
-    const audio = new Audio(QUIZ_SUMMARY_AMBIENT_SRC);
     audio.volume = QUIZ_SUMMARY_AMBIENT_VOLUME;
-    audio.loop = true;
-    summaryAmbientAudioRef.current = audio;
-    void audio.play().catch(() => {});
+    attemptPlaySummaryAmbient(audio);
+
+    const unlockAndPlay = () => {
+      const current = summaryAmbientAudioRef.current;
+      if (!current) return;
+      current.volume = QUIZ_SUMMARY_AMBIENT_VOLUME;
+      attemptPlaySummaryAmbient(current);
+    };
+
+    window.addEventListener("pointerdown", unlockAndPlay, { passive: true });
+    window.addEventListener("touchstart", unlockAndPlay, { passive: true });
+    window.addEventListener("keydown", unlockAndPlay);
+
+    return () => {
+      window.removeEventListener("pointerdown", unlockAndPlay);
+      window.removeEventListener("touchstart", unlockAndPlay);
+      window.removeEventListener("keydown", unlockAndPlay);
+      clearSummaryAmbientPlayRetry();
+    };
   }, [
     step?.kind,
     step?.kind === "summary" ? step.headline : undefined,
+    attemptPlaySummaryAmbient,
+    clearSummaryAmbientPlayRetry,
   ]);
 
   useLayoutEffect(() => {

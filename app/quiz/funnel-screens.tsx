@@ -381,7 +381,7 @@ export function CalculatingScreen({
       <div className="flex shrink-0 flex-col">
         <div className="shrink-0">{progressBar}</div>
         <div className="flex flex-col items-center gap-6">
-          <div className="relative size-[200px] shrink-0">
+          <div className="relative size-[184px] shrink-0">
           <svg
             width="200"
             height="200"
@@ -433,10 +433,10 @@ export function CalculatingScreen({
             </g>
           </svg>
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center gap-0.5 text-[#22262f]">
-            <span className="text-[56px] font-semibold leading-none tracking-[-2.8px] tabular-nums">
+            <span className="text-[50px] font-semibold leading-none tracking-[-2.52px] tabular-nums">
               {Math.round(Math.min(100, pct))}
             </span>
-            <span className="pt-1 text-[28px] font-semibold leading-none tracking-[-1.4px]">
+            <span className="pt-1 text-[25px] font-semibold leading-none tracking-[-1.26px]">
               %
             </span>
           </div>
@@ -452,7 +452,7 @@ export function CalculatingScreen({
             return (
               <li
                 key={label}
-                className="flex flex-nowrap items-center gap-2 overflow-hidden text-left text-[16px] font-medium leading-4 tracking-[-0.32px] text-[#22262f]"
+                className="flex flex-nowrap items-center gap-2 overflow-hidden text-left text-[16px] font-medium leading-5 tracking-[-0.32px] text-[#22262f]"
               >
                 <div className="relative size-6 shrink-0">
                   <span
@@ -738,125 +738,116 @@ export function EmailCaptureScreen({
   }, []);
 
   return (
-    <>
-      <div
-        className={`flex min-h-0 flex-1 flex-col scroll-pb-32 overflow-y-auto bg-white px-4 ${quizStickyScrollGapBottom} pt-4`}
-      >
-        <div className="shrink-0">{progressBar}</div>
-        <div className="flex min-h-0 flex-1 flex-col justify-center">
-          <div className="flex w-full shrink-0 flex-col items-center gap-3 py-6">
-            <div className="flex shrink-0 justify-center">
-              <Mascot eyes="happy" />
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-white px-4 pb-6 pt-4">
+      <div className="shrink-0">{progressBar}</div>
+      <div className="flex min-h-0 flex-1 flex-col justify-center">
+        <div className="flex w-full shrink-0 flex-col items-center gap-3 py-6">
+          <div className="flex shrink-0 justify-center">
+            <Mascot eyes="happy" />
+          </div>
+          <div className="mx-auto flex w-full max-w-[361px] shrink-0 flex-col items-center gap-6">
+            <div className="flex w-full flex-col gap-4 text-center">
+              <p className="whitespace-pre-line text-[28px] font-semibold leading-8 tracking-[-1.4px] text-[#22262f]">
+                What&apos;s your email to{"\n"}send the plan?
+              </p>
+              <p className="text-[16px] font-normal leading-[22px] tracking-[-0.128px] text-[#464e62]">
+                Enter your email to save your results and get early access to
+                your AI speaking plan.
+              </p>
             </div>
-            <div className="mx-auto flex w-full max-w-[361px] shrink-0 flex-col items-center gap-6">
-              <div className="flex w-full flex-col gap-4 text-center">
-                <p className="whitespace-pre-line text-[28px] font-semibold leading-8 tracking-[-1.4px] text-[#22262f]">
-                  What&apos;s your email to{"\n"}send the plan?
-                </p>
-                <p className="text-[16px] font-normal leading-[22px] tracking-[-0.128px] text-[#464e62]">
-                  Enter your email to save your results and get early access to
-                  your AI speaking plan.
-                </p>
-              </div>
-              <div className="mx-auto flex w-full max-w-[280px] flex-col gap-3">
-                <div className="relative w-full">
-                  <input
-                    ref={emailInputRef}
-                    type="email"
-                    autoComplete="email"
-                    placeholder="you@email.com"
-                    value={value}
-                    onChange={(e) => onChange(e.target.value)}
-                    onFocus={() => {
-                      setFocused(true);
-                      setRevealInvalidEmail(false);
-                      scrollEmailFieldIntoView();
-                    }}
-                    onBlur={() => {
-                      setFocused(false);
+            <div className="mx-auto flex w-full max-w-[280px] flex-col gap-4">
+              <div className="relative w-full">
+                <input
+                  ref={emailInputRef}
+                  type="email"
+                  autoComplete="email"
+                  placeholder="you@email.com"
+                  value={value}
+                  onChange={(e) => onChange(e.target.value)}
+                  onFocus={() => {
+                    setFocused(true);
+                    setRevealInvalidEmail(false);
+                    scrollEmailFieldIntoView();
+                  }}
+                  onBlur={() => {
+                    setFocused(false);
+                    setRevealInvalidEmail(true);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
                       setRevealInvalidEmail(true);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        setRevealInvalidEmail(true);
-                      }
-                    }}
-                    aria-invalid={showInvalidIcon}
-                    aria-describedby={
-                      displayErrorMessage ? errorId : undefined
                     }
-                    aria-expanded={showSuggestions}
-                    aria-controls={showSuggestions ? listboxId : undefined}
-                    aria-autocomplete="list"
-                    className={`h-14 w-full min-w-0 rounded-[16px] border bg-[#F5F6FA] text-[16px] text-[#22262f] outline-none ring-0 placeholder:text-[#7a8399] ${
-                      showStatusIcon ? "pl-4 pr-12" : "px-4"
-                    } ${
-                      showInvalidIcon
-                        ? "border-[#EE5542] focus:border-[#EE5542]"
-                        : "border-[#ebeef5] focus:border-[#05a8ff]"
-                    }`}
-                  />
-                  {showValidIcon ? (
-                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
-                      <EmailFieldValidIcon />
-                    </span>
-                  ) : null}
-                  {showInvalidIcon ? (
-                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
-                      <EmailFieldInvalidIcon />
-                    </span>
-                  ) : null}
-                  {showSuggestions ? (
-                    <ul
-                      id={listboxId}
-                      role="listbox"
-                      className="absolute left-0 right-0 top-full z-10 mt-1 max-h-52 overflow-y-auto rounded-[16px] border border-[#ebeef5] bg-white py-1"
-                    >
-                      {suggestions.map((s) => (
-                        <li key={s} role="presentation">
-                          <button
-                            type="button"
-                            role="option"
-                            className="quiz-transition-interactive w-full px-4 py-2.5 text-left text-[16px] text-[#22262f] hover:bg-[#f5f6fa] active:bg-[#f5f6fa]"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => {
-                              onChange(s);
-                              setFocused(false);
-                            }}
-                          >
-                            {s}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </div>
-                {displayErrorMessage ? (
-                  <p
-                    id={errorId}
-                    role="alert"
-                    className="text-left text-[14px] font-normal leading-[18px] tracking-[-0.084px] text-[#EE5542]"
-                  >
-                    {displayErrorMessage}
-                  </p>
+                  }}
+                  aria-invalid={showInvalidIcon}
+                  aria-describedby={displayErrorMessage ? errorId : undefined}
+                  aria-expanded={showSuggestions}
+                  aria-controls={showSuggestions ? listboxId : undefined}
+                  aria-autocomplete="list"
+                  className={`h-14 w-full min-w-0 rounded-[16px] border bg-[#F5F6FA] text-[16px] text-[#22262f] outline-none ring-0 placeholder:text-[#7a8399] ${
+                    showStatusIcon ? "pl-4 pr-12" : "px-4"
+                  } ${
+                    showInvalidIcon
+                      ? "border-[#EE5542] focus:border-[#EE5542]"
+                      : "border-[#ebeef5] focus:border-[#05a8ff]"
+                  }`}
+                />
+                {showValidIcon ? (
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+                    <EmailFieldValidIcon />
+                  </span>
                 ) : null}
-                <p className="text-center text-[14px] font-normal leading-[20px] tracking-[-0.112px] text-[#7a8399]">
-                  By continuing, you agree to our{" "}
-                  <span className="font-semibold">Terms of Use</span> and{" "}
-                  <span className="font-semibold">Privacy Policy</span>.
-                </p>
+                {showInvalidIcon ? (
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+                    <EmailFieldInvalidIcon />
+                  </span>
+                ) : null}
+                {showSuggestions ? (
+                  <ul
+                    id={listboxId}
+                    role="listbox"
+                    className="absolute left-0 right-0 top-full z-10 mt-1 max-h-52 overflow-y-auto rounded-[16px] border border-[#ebeef5] bg-white py-1"
+                  >
+                    {suggestions.map((s) => (
+                      <li key={s} role="presentation">
+                        <button
+                          type="button"
+                          role="option"
+                          className="quiz-transition-interactive w-full px-4 py-2.5 text-left text-[16px] text-[#22262f] hover:bg-[#f5f6fa] active:bg-[#f5f6fa]"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            onChange(s);
+                            setFocused(false);
+                          }}
+                        >
+                          {s}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </div>
+              {displayErrorMessage ? (
+                <p
+                  id={errorId}
+                  role="alert"
+                  className="text-left text-[14px] font-normal leading-[18px] tracking-[-0.084px] text-[#EE5542]"
+                >
+                  {displayErrorMessage}
+                </p>
+              ) : null}
+              <SheetBlackButton disabled={!valid} onClick={onContinue}>
+                Continue
+              </SheetBlackButton>
+              <p className="text-center text-[14px] font-normal leading-[20px] tracking-[-0.112px] text-[#7a8399]">
+                By continuing, you agree to our{" "}
+                <span className="font-semibold">Terms of Use</span> and{" "}
+                <span className="font-semibold">Privacy Policy</span>.
+              </p>
             </div>
           </div>
         </div>
       </div>
-      <QuizStickyFooterSlot />
-      <ButtonWrapper>
-        <SheetBlackButton disabled={!valid} onClick={onContinue}>
-          Continue
-        </SheetBlackButton>
-      </ButtonWrapper>
-    </>
+    </div>
   );
 }
 
@@ -895,7 +886,7 @@ export function EmailPermissionScreen({
         }}
       />
       <ButtonWrapper>
-        <div className="flex w-full flex-col gap-3">
+        <div className="font-[family-name:var(--font-inter),sans-serif] flex w-full flex-col gap-3">
           <SheetBlackButton onClick={onOptIn}>Sure, I&apos;m in!</SheetBlackButton>
           <button
             type="button"
@@ -1058,12 +1049,12 @@ export function TeaserLoopContent() {
         <p className="pb-2 text-center text-[16px] font-semibold leading-[18px] tracking-[-0.32px] text-white">
           Why Bravel works
         </p>
-        <div className="relative h-[254px] w-full overflow-hidden rounded-2xl border border-[#ebeef5] bg-[#f3fef6]">
+        <div className="relative h-[256px] w-full overflow-hidden rounded-2xl border border-[#ebeef5] bg-[#f3fef6]">
           <Image
             src={quizAssets.figmaTeaserLoopIllustration}
             alt=""
             fill
-            className="object-contain object-center"
+            className="object-cover object-center"
             sizes="(max-width: 480px) min(100vw - 80px, 361px), 361px"
             priority
             unoptimized
