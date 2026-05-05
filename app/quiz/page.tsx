@@ -762,11 +762,22 @@ export default function QuizPage() {
       />
     );
   } else if (step?.kind === "email") {
+    const answersPayload = {
+      selectedAgeGroupId,
+      selectedGenderId,
+      selectedWorkFieldId,
+      englishFeelTitle,
+      practiceTimeLabel,
+      subtleOtherText,
+      multiNoneCustomText,
+      multiSelected: Array.from(multiSelected),
+    };
     inner = (
       <EmailCaptureScreen
         value={emailDraft}
         onChange={setEmailDraft}
         onContinue={goNext}
+        answers={answersPayload}
         progressBar={progressBar("onWhite", true)}
       />
     );
