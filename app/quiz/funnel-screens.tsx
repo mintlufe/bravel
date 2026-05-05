@@ -696,12 +696,14 @@ export function EmailCaptureScreen({
   value,
   onChange,
   onContinue,
+  onSubmitEmail,
   answers,
   progressBar,
 }: {
   value: string;
   onChange: (v: string) => void;
   onContinue: () => void;
+  onSubmitEmail?: (email: string) => void;
   answers?: unknown;
   progressBar: React.ReactNode;
 }) {
@@ -741,8 +743,9 @@ export function EmailCaptureScreen({
 
   const handleSubmit = useCallback(() => {
     if (!valid) return;
+    onSubmitEmail?.(trimmed);
     onContinue();
-  }, [onContinue, valid]);
+  }, [onContinue, onSubmitEmail, trimmed, valid]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-white px-4 pb-6 pt-4">

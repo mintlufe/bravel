@@ -51,6 +51,7 @@ import {
   WORK_IMPACT_FALLBACK,
 } from "./work-impact-copy";
 import { getPeopleTeaserCopy } from "./people-teaser-copy";
+import { trackEvent } from "./analytics";
 
 /** Default text for “Copy invite link” on the referral screen. Override with `NEXT_PUBLIC_REFERRAL_INVITE_URL`. */
 const REFERRAL_INVITE_FALLBACK_URL =
@@ -100,6 +101,11 @@ function isQuestionStepKind(kind: QuizStep["kind"]): boolean {
     kind === "title-single" ||
     kind === "email"
   );
+}
+
+function getQuestionKey(step: QuizStep | undefined): string {
+  if (!step) return "unknown";
+  return "question" in step ? step.question : step.kind;
 }
 
 function shouldShowStickyOther(
@@ -248,6 +254,16 @@ export default function QuizPage() {
   );
 
   const step = steps[index];
+
+  useEffect(() => {
+    trackEvent("quiz_started", { screen: "quiz" });
+  }, []);
+
+  useEffect(() => {
+    if (step?.kind === "referral") {
+      trackEvent("quiz_completed", { screen: "success" });
+    }
+  }, [step]);
 
   const summaryAmbientAudioRef = useRef<HTMLAudioElement | null>(null);
   const summaryAmbientFadeCancelRef = useRef<(() => void) | null>(null);
@@ -550,7 +566,7 @@ export default function QuizPage() {
         emailPermission: permission,
       };
 
-      await fetch("/api/submit", {
+      const response = await fetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -559,6 +575,12 @@ export default function QuizPage() {
           emailPermission: permission,
         }),
       });
+      if (response.ok) {
+        trackEvent("telegram_submit_success", {
+          emailPermission: permission,
+          screen: "email_permission",
+        });
+      }
     },
     [
       centralizedAnswers,
@@ -575,6 +597,19 @@ export default function QuizPage() {
   );
 
   const toggleMulti = useCallback((id: string) => {
+    if (step?.kind === "multi") {
+      const selectedOpt = step.options.find((opt) => opt.id === id);
+      const selectedAnswer =
+        selectedOpt?.id === "none" && selectedOpt.allowCustomText
+          ? multiNoneCustomText.trim() || selectedOpt.label
+          : selectedOpt?.label || id;
+      trackEvent("quiz_answer_selected", {
+        stepIndex: index,
+        questionKey: getQuestionKey(step),
+        selectedAnswer,
+      });
+    }
+
     setMultiSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
@@ -614,7 +649,7 @@ export default function QuizPage() {
 
       return next;
     });
-  }, [multiNoneCustomText, step]);
+  }, [index, multiNoneCustomText, step]);
 
   useEffect(() => {
     if (step?.kind !== "multi") return;
@@ -803,6 +838,11 @@ export default function QuizPage() {
             setSelectedGenderId(optionId);
             const selected = step.options.find((opt) => opt.id === optionId);
             if (selected) {
+              trackEvent("quiz_answer_selected", {
+                stepIndex: index,
+                questionKey: getQuestionKey(step),
+                selectedAnswer: selected.label,
+              });
               setCentralizedAnswers((prev) => ({
                 ...prev,
                 gender: {
@@ -884,6 +924,9 @@ export default function QuizPage() {
       <EmailCaptureScreen
         value={emailDraft}
         onChange={setEmailDraft}
+        onSubmitEmail={(email) => {
+          trackEvent("email_submitted", { email, screen: "email_capture" });
+        }}
         onContinue={goNext}
         answers={answersPayload}
         progressBar={progressBar("onWhite", true)}
@@ -894,6 +937,10 @@ export default function QuizPage() {
       <EmailPermissionScreen
         onOptIn={async () => {
           setEmailPermission(true);
+          trackEvent("email_permission_selected", {
+            emailPermission: true,
+            screen: "email_permission",
+          });
           try {
             await submitLeadWithPermission(true);
           } catch {
@@ -903,6 +950,10 @@ export default function QuizPage() {
         }}
         onOptOut={async () => {
           setEmailPermission(false);
+          trackEvent("email_permission_selected", {
+            emailPermission: false,
+            screen: "email_permission",
+          });
           try {
             await submitLeadWithPermission(false);
           } catch {
@@ -918,6 +969,10 @@ export default function QuizPage() {
     inner = (
       <ReferralScreen
         onCopyInvite={async () => {
+          trackEvent("referral_link_copied", {
+            screen: "success",
+            action: "copy_invite_link",
+          });
           const url =
             process.env.NEXT_PUBLIC_REFERRAL_INVITE_URL?.trim() ||
             REFERRAL_INVITE_FALLBACK_URL;
@@ -951,6 +1006,11 @@ export default function QuizPage() {
                 key={opt.id}
                 option={opt}
                 onSelect={() => {
+                  trackEvent("quiz_answer_selected", {
+                    stepIndex: index,
+                    questionKey: getQuestionKey(step),
+                    selectedAnswer: opt.title,
+                  });
                   if (
                     step.question ===
                     "What would you like your English to feel like?"
@@ -1074,6 +1134,11 @@ export default function QuizPage() {
     const submitCustomOther = () => {
       const otherOpt = step.options.find((o) => o.allowCustomText);
       if (!otherOpt || !subtleOtherText.trim()) return;
+      trackEvent("quiz_answer_selected", {
+        stepIndex: index,
+        questionKey: getQuestionKey(step),
+        selectedAnswer: subtleOtherText.trim(),
+      });
       if (isWorkField) {
         setSelectedWorkFieldId(otherOpt.id);
         setCentralizedAnswers((prev) => ({
@@ -1129,6 +1194,11 @@ export default function QuizPage() {
                       submitCustomOther();
                       return;
                     }
+                    trackEvent("quiz_answer_selected", {
+                      stepIndex: index,
+                      questionKey: getQuestionKey(step),
+                      selectedAnswer: opt.label,
+                    });
                     if (
                       step.question ===
                       "How often do you struggle to express your thoughts in English?"
@@ -1228,6 +1298,11 @@ export default function QuizPage() {
                 key={opt.id}
                 option={opt}
                 onSelect={() => {
+                  trackEvent("quiz_answer_selected", {
+                    stepIndex: index,
+                    questionKey: getQuestionKey(step),
+                    selectedAnswer: opt.label,
+                  });
                   if (step.question === "What is your age group?") {
                     setSelectedAgeGroupId(opt.id);
                     setCentralizedAnswers((prev) => ({
