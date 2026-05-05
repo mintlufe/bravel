@@ -220,6 +220,9 @@ function QuizScreenShell({
 }
 
 export default function QuizPage() {
+  const [centralizedAnswers, setCentralizedAnswers] = useState<
+    Record<string, { question: string; answer: string | string[] }>
+  >({});
   const [index, setIndex] = useState(0);
   const [multiSelected, setMultiSelected] = useState<Set<string>>(
     () => new Set(),
@@ -237,6 +240,7 @@ export default function QuizPage() {
     null,
   );
   const [selectedGenderId, setSelectedGenderId] = useState<string | null>(null);
+  const [emailPermission, setEmailPermission] = useState<boolean | null>(null);
   const [stayOnCalculating, setStayOnCalculating] = useState(false);
   const [englishFeelTitle, setEnglishFeelTitle] = useState<string | null>(null);
   const [practiceTimeLabel, setPracticeTimeLabel] = useState<string | null>(
@@ -531,21 +535,86 @@ export default function QuizPage() {
     setMultiSelected(new Set());
   }, [bumpMotion, index]);
 
+  const submitLeadWithPermission = useCallback(
+    async (permission: boolean) => {
+      const answersPayload = {
+        ...centralizedAnswers,
+        selectedAgeGroupId,
+        selectedGenderId,
+        selectedWorkFieldId,
+        englishFeelTitle,
+        practiceTimeLabel,
+        subtleOtherText,
+        multiNoneCustomText,
+        multiSelected: Array.from(multiSelected),
+        emailPermission: permission,
+      };
+
+      await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: emailDraft.trim(),
+          answers: answersPayload,
+          emailPermission: permission,
+        }),
+      });
+    },
+    [
+      centralizedAnswers,
+      selectedAgeGroupId,
+      selectedGenderId,
+      selectedWorkFieldId,
+      englishFeelTitle,
+      practiceTimeLabel,
+      subtleOtherText,
+      multiNoneCustomText,
+      multiSelected,
+      emailDraft,
+    ],
+  );
+
   const toggleMulti = useCallback((id: string) => {
     setMultiSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
-        return next;
+      } else if (id === "none") {
+        next.clear();
+        next.add("none");
+      } else {
+        next.delete("none");
+        next.add(id);
       }
-      if (id === "none") {
-        return new Set<string>(["none"]);
+
+      if (
+        step?.kind === "multi" &&
+        step.question === "What gets in your way when you speak English?"
+      ) {
+        const selectedLabels = Array.from(next)
+          .map((selectedId) => {
+            const selectedOpt = step.options.find((o) => o.id === selectedId);
+            if (!selectedOpt) return null;
+            if (selectedOpt.id === "none" && selectedOpt.allowCustomText) {
+              const custom = multiNoneCustomText.trim();
+              return custom.length > 0 ? custom : selectedOpt.label;
+            }
+            return selectedOpt.label;
+          })
+          .filter((label): label is string => !!label);
+
+        setCentralizedAnswers((prevAnswers) => ({
+          ...prevAnswers,
+          speakingBlockers: {
+            question: "What gets in your way when you speak English?",
+            answer: selectedLabels,
+          },
+        }));
       }
-      next.delete("none");
-      next.add(id);
+
       return next;
     });
-  }, []);
+  }, [multiNoneCustomText, step]);
 
   const screenKey = `step-${index}`;
 
@@ -705,6 +774,16 @@ export default function QuizPage() {
           options={step.options}
           onOptionSelect={(optionId) => {
             setSelectedGenderId(optionId);
+            const selected = step.options.find((opt) => opt.id === optionId);
+            if (selected) {
+              setCentralizedAnswers((prev) => ({
+                ...prev,
+                gender: {
+                  question: "What is your gender?",
+                  answer: selected.label,
+                },
+              }));
+            }
             goNext();
           }}
         />
@@ -763,6 +842,7 @@ export default function QuizPage() {
     );
   } else if (step?.kind === "email") {
     const answersPayload = {
+      ...centralizedAnswers,
       selectedAgeGroupId,
       selectedGenderId,
       selectedWorkFieldId,
@@ -771,6 +851,7 @@ export default function QuizPage() {
       subtleOtherText,
       multiNoneCustomText,
       multiSelected: Array.from(multiSelected),
+      emailPermission,
     };
     inner = (
       <EmailCaptureScreen
@@ -783,7 +864,26 @@ export default function QuizPage() {
     );
   } else if (step?.kind === "email-permission") {
     inner = (
-      <EmailPermissionScreen onOptIn={goNext} onOptOut={goNext} />
+      <EmailPermissionScreen
+        onOptIn={async () => {
+          setEmailPermission(true);
+          try {
+            await submitLeadWithPermission(true);
+          } catch {
+            // keep flow moving even if submission fails
+          }
+          goNext();
+        }}
+        onOptOut={async () => {
+          setEmailPermission(false);
+          try {
+            await submitLeadWithPermission(false);
+          } catch {
+            // keep flow moving even if submission fails
+          }
+          goNext();
+        }}
+      />
     );
   } else if (step?.kind === "quiz-success") {
     inner = <QuizSuccessScreen onComplete={goNext} />;
@@ -829,6 +929,13 @@ export default function QuizPage() {
                     "What would you like your English to feel like?"
                   ) {
                     setEnglishFeelTitle(opt.title);
+                    setCentralizedAnswers((prev) => ({
+                      ...prev,
+                      desiredEnglishFeeling: {
+                        question: "What would you like your English to feel like?",
+                        answer: opt.title,
+                      },
+                    }));
                   }
                   goNext();
                 }}
@@ -940,7 +1047,16 @@ export default function QuizPage() {
     const submitCustomOther = () => {
       const otherOpt = step.options.find((o) => o.allowCustomText);
       if (!otherOpt || !subtleOtherText.trim()) return;
-      if (isWorkField) setSelectedWorkFieldId(otherOpt.id);
+      if (isWorkField) {
+        setSelectedWorkFieldId(otherOpt.id);
+        setCentralizedAnswers((prev) => ({
+          ...prev,
+          workField: {
+            question: "What field do you work in?",
+            answer: subtleOtherText.trim(),
+          },
+        }));
+      }
       setSubtleOtherText("");
       goNext();
     };
@@ -986,7 +1102,42 @@ export default function QuizPage() {
                       submitCustomOther();
                       return;
                     }
-                    if (isWorkField) setSelectedWorkFieldId(opt.id);
+                    if (
+                      step.question ===
+                      "How often do you struggle to express your thoughts in English?"
+                    ) {
+                      setCentralizedAnswers((prev) => ({
+                        ...prev,
+                        expressionStruggleFrequency: {
+                          question:
+                            "How often do you struggle to express your thoughts in English?",
+                          answer: opt.label,
+                        },
+                      }));
+                    }
+                    if (
+                      step.question ===
+                      "How often do you feel left out because of English?"
+                    ) {
+                      setCentralizedAnswers((prev) => ({
+                        ...prev,
+                        leftOutFrequency: {
+                          question:
+                            "How often do you feel left out because of English?",
+                          answer: opt.label,
+                        },
+                      }));
+                    }
+                    if (isWorkField) {
+                      setSelectedWorkFieldId(opt.id);
+                      setCentralizedAnswers((prev) => ({
+                        ...prev,
+                        workField: {
+                          question: "What field do you work in?",
+                          answer: opt.label,
+                        },
+                      }));
+                    }
                     goNext();
                   }}
                 />
@@ -1040,9 +1191,35 @@ export default function QuizPage() {
                 onSelect={() => {
                   if (step.question === "What is your age group?") {
                     setSelectedAgeGroupId(opt.id);
+                    setCentralizedAnswers((prev) => ({
+                      ...prev,
+                      ageGroup: {
+                        question: "What is your age group?",
+                        answer: opt.label,
+                      },
+                    }));
                   }
                   if (step.question === "How much time can you practice a day?") {
                     setPracticeTimeLabel(opt.label);
+                    setCentralizedAnswers((prev) => ({
+                      ...prev,
+                      practiceTime: {
+                        question: "How much time can you practice a day?",
+                        answer: opt.label,
+                      },
+                    }));
+                  }
+                  if (
+                    step.question ===
+                    "What kind of AI tutor would help you most?"
+                  ) {
+                    setCentralizedAnswers((prev) => ({
+                      ...prev,
+                      aiTutorPreference: {
+                        question: "What kind of AI tutor would help you most?",
+                        answer: opt.label,
+                      },
+                    }));
                   }
                   goNext();
                 }}

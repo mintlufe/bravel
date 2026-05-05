@@ -1,12 +1,13 @@
 type QuizSubmitBody = {
   email?: string;
   answers?: unknown;
+  emailPermission?: boolean;
 };
 
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as QuizSubmitBody;
-    const { email, answers } = body;
+    const { email, answers, emailPermission } = body;
 
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -21,6 +22,13 @@ export async function POST(request: Request) {
     const message = [
       "New quiz submission",
       `Email: ${email ?? "N/A"}`,
+      `Permission to receive emails: ${
+        typeof emailPermission === "boolean"
+          ? emailPermission
+            ? "Yes"
+            : "No"
+          : "No"
+      }`,
       "",
       "Answers:",
       JSON.stringify(answers ?? null, null, 2),
