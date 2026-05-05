@@ -68,6 +68,16 @@ export type QuizStep =
       total: number;
     }
   | {
+      kind: "email-permission";
+      progress: number;
+      total: number;
+    }
+  | {
+      kind: "quiz-success";
+      progress: number;
+      total: number;
+    }
+  | {
       kind: "referral";
       progress: number;
       total: number;
@@ -111,7 +121,7 @@ export type QuizStep =
     };
 
 /** Post-start steps only (matches progress bar length). */
-export const QUIZ_TOTAL = 21;
+export const QUIZ_TOTAL = 24;
 
 /** Exact copy — used by {@link SummaryLineScreen} for accent highlights. */
 export const SUMMARY_HEADLINE_PERSONALIZED =
@@ -341,7 +351,9 @@ export const steps: QuizStep[] = [
     headline: SUMMARY_HEADLINE_GET_STARTED,
   },
   { kind: "email", progress: 20, total: QUIZ_TOTAL },
-  { kind: "referral", progress: 21, total: QUIZ_TOTAL },
+  { kind: "email-permission", progress: 21, total: QUIZ_TOTAL },
+  { kind: "quiz-success", progress: 22, total: QUIZ_TOTAL },
+  { kind: "referral", progress: 23, total: QUIZ_TOTAL },
 ];
 
 /** Index of the calculating step (open `/quiz?loading=stay` to inspect without redirect). */

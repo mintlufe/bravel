@@ -34,6 +34,8 @@ import {
 import {
   CalculatingScreen,
   EmailCaptureScreen,
+  EmailPermissionScreen,
+  QuizSuccessScreen,
   ReferralScreen,
   SummaryLineScreen,
   TeaserContinueScreen,
@@ -515,7 +517,18 @@ export default function QuizPage() {
         beams: false,
       } as const;
     }
-    if (step.kind === "calculating" || step.kind === "email") {
+    if (step.kind === "quiz-success") {
+      return {
+        shell: "bg-gradient-to-b from-[#05a8ff] to-[#057ccc]",
+        frame: "text-white",
+        beams: true,
+      } as const;
+    }
+    if (
+      step.kind === "calculating" ||
+      step.kind === "email" ||
+      step.kind === "email-permission"
+    ) {
       return {
         shell: "bg-white",
         frame: "text-[#22262f]",
@@ -586,11 +599,18 @@ export default function QuizPage() {
     (step.kind === "teaser" ||
       step.kind === "summary" ||
       step.kind === "referral" ||
-      step.kind === "work-impact-teaser");
+      step.kind === "work-impact-teaser" ||
+      step.kind === "quiz-success");
 
   const progressSurfaceForEmbedded = useMemo(() => {
     if (!step) return "onBlue" as const;
-    if (step.kind === "calculating" || step.kind === "email") return "onWhite";
+    if (
+      step.kind === "calculating" ||
+      step.kind === "email" ||
+      step.kind === "email-permission"
+    ) {
+      return "onWhite";
+    }
     if (
       step.kind === "plain-single" ||
       step.kind === "subtle-single" ||
@@ -608,11 +628,13 @@ export default function QuizPage() {
   const progressBar = (
     surface: "onBlue" | "onWhite" | "funnel" = "onBlue",
     showDetails = true,
+    padTop = false,
   ) =>
     step && "progress" in step ? (
       <ProgressBar
         surface={surface}
         showDetails={showDetails}
+        padTop={padTop}
         current={currentQuestionNumber}
         total={questionTotal}
         onBack={goBack}
@@ -648,6 +670,7 @@ export default function QuizPage() {
       <TeaserContinueScreen
         ctaLabel={step.ctaLabel}
         onContinue={goNext}
+        sheetTopSpacing={titleInBlueHero ? "loose" : "compact"}
         hero={
           <>
             <div className="shrink-0 px-4">{progressBar("onBlue", false)}</div>
@@ -700,6 +723,12 @@ export default function QuizPage() {
         progressBar={progressBar("onWhite", true)}
       />
     );
+  } else if (step?.kind === "email-permission") {
+    inner = (
+      <EmailPermissionScreen onOptIn={goNext} onOptOut={goNext} />
+    );
+  } else if (step?.kind === "quiz-success") {
+    inner = <QuizSuccessScreen onComplete={goNext} />;
   } else if (step?.kind === "referral") {
     inner = (
       <ReferralScreen
@@ -971,7 +1000,9 @@ export default function QuizPage() {
 
   return (
     <div
-      className={`flex min-h-0 w-full max-w-[100vw] flex-1 touch-pan-y flex-col overflow-x-hidden overflow-y-hidden overscroll-x-none ${shell.shell}`}
+      className={`flex min-h-0 w-full max-w-[100vw] flex-1 touch-pan-y flex-col overflow-x-hidden overflow-y-hidden overscroll-x-none ${shell.shell}${
+        step?.kind === "email-permission" ? " pt-4" : ""
+      }`}
     >
       <QuizFrame className={shell.frame}>
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
@@ -981,7 +1012,9 @@ export default function QuizPage() {
                 variant={
                   step?.kind === "work-impact-teaser"
                     ? "workImpact"
-                    : step?.kind === "summary" || step?.kind === "referral"
+                    : step?.kind === "summary" ||
+                        step?.kind === "referral" ||
+                        step?.kind === "quiz-success"
                       ? "center"
                       : "default"
                 }
@@ -993,20 +1026,24 @@ export default function QuizPage() {
               step?.kind === "teaser" ||
               step?.kind === "start" ||
               step?.kind === "referral" ||
-              step?.kind === "calculating"
+              step?.kind === "calculating" ||
+              step?.kind === "quiz-success"
                 ? "pb-0"
                 : "pb-4"
             } ${
               isBlueScreen ||
               step?.kind === "start" ||
               step?.kind === "email" ||
+              step?.kind === "email-permission" ||
               step?.kind === "calculating"
                 ? "pt-0"
                 : "pt-4"
             }`}
           >
             {progressMeta ? (
-              <div className="shrink-0 px-4">
+              <div
+                className={`shrink-0 px-4${step?.kind === "email" ? " pt-4" : ""}`}
+              >
                 <ProgressBar
                   surface={progressSurfaceForEmbedded}
                   showDetails={isCurrentStepQuestion}

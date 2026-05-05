@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useLayoutEffect, useState } from "react";
+import { useId, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import type { CheckboxOption, SubtleOption, TitleTextOption } from "./steps";
@@ -434,6 +434,8 @@ type ProgressBarProps = {
    * `funnel` — Figma ScreenGeneral progress (`#ebeef5` track 8px, dark chevron).
    */
   surface?: "onBlue" | "onWhite" | "funnel";
+  /** Extra top padding on the bar row (e.g. email capture). */
+  padTop?: boolean;
 };
 
 export function ProgressBar({
@@ -442,6 +444,7 @@ export function ProgressBar({
   onBack,
   showDetails = true,
   surface = "onBlue",
+  padTop = false,
 }: ProgressBarProps) {
   const pct = Math.min(100, Math.max(0, (current / total) * 100));
   const onBlue = surface === "onBlue";
@@ -451,7 +454,7 @@ export function ProgressBar({
 
   return (
     <div
-      className={`flex w-full items-center gap-[16px]${onBlue ? " pt-4" : ""}`}
+      className={`flex w-full items-center gap-[16px]${onBlue || padTop ? " pt-4" : ""}`}
     >
       <div className="flex w-[48px] shrink-0 items-center">
         <button
@@ -655,7 +658,7 @@ export function SubtleRow({
       <div
         id="quiz-subtle-custom-row"
         data-quiz-subtle-custom=""
-        className={`${subtleCardBase} min-h-14 focus-within:ring-2 focus-within:ring-[#05a8ff] ${quizStickyBottomScrollMargin}`}
+        className={`${subtleCardBase} min-h-14 focus-within:ring-1 focus-within:ring-[#05a8ff] ${quizStickyBottomScrollMargin}`}
       >
         <span className="shrink-0 text-[24px] leading-6 tracking-[-0.192px]">
           {option.emoji}
@@ -736,10 +739,11 @@ export function ButtonWrapper({ children }: { children: React.ReactNode }) {
     setContainer(document.body);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof window === "undefined") return;
     const vv = window.visualViewport;
     if (!vv) return;
+
     const syncKeyboardOverlap = () => {
       const overlap = Math.max(
         0,
@@ -747,22 +751,48 @@ export function ButtonWrapper({ children }: { children: React.ReactNode }) {
       );
       setKeyboardOverlap(overlap);
     };
+
+    /** iOS often resizes the visual viewport after focus; re-measure a few times. */
+    const syncSoon = () => {
+      syncKeyboardOverlap();
+      requestAnimationFrame(syncKeyboardOverlap);
+      window.setTimeout(syncKeyboardOverlap, 50);
+      window.setTimeout(syncKeyboardOverlap, 120);
+      window.setTimeout(syncKeyboardOverlap, 280);
+      window.setTimeout(syncKeyboardOverlap, 450);
+    };
+
     syncKeyboardOverlap();
     vv.addEventListener("resize", syncKeyboardOverlap);
     vv.addEventListener("scroll", syncKeyboardOverlap);
+    window.addEventListener("resize", syncKeyboardOverlap);
+    window.addEventListener("orientationchange", syncKeyboardOverlap);
+    window.addEventListener("focusin", syncSoon);
+    window.addEventListener("focusout", syncSoon);
+
     return () => {
       vv.removeEventListener("resize", syncKeyboardOverlap);
       vv.removeEventListener("scroll", syncKeyboardOverlap);
+      window.removeEventListener("resize", syncKeyboardOverlap);
+      window.removeEventListener("orientationchange", syncKeyboardOverlap);
+      window.removeEventListener("focusin", syncSoon);
+      window.removeEventListener("focusout", syncSoon);
     };
   }, []);
 
   const bar = (
     <div
-      className="pointer-events-none fixed left-0 right-0 z-50 flex justify-center transition-[bottom] duration-150 ease-out"
-      style={{ bottom: keyboardOverlap }}
+      className="pointer-events-none fixed left-0 right-0 z-50 flex justify-center"
+      style={{
+        bottom: keyboardOverlap,
+        transition:
+          keyboardOverlap > 0
+            ? "none"
+            : "bottom 150ms cubic-bezier(0.4, 0, 0.2, 1)",
+      }}
     >
       <div
-        className="pointer-events-auto flex w-full max-w-[393px] flex-col items-stretch bg-[rgba(25,26,31,0.01)] px-4 pt-0 backdrop-blur-[6px]"
+        className="pointer-events-auto flex w-full max-w-[393px] flex-col items-stretch px-4 pt-0"
         style={{
           paddingBottom: "max(1rem, env(safe-area-inset-bottom, 0px))",
         }}

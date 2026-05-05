@@ -239,10 +239,28 @@
     animation: none !important;
   }
 
+  .quiz-mascot-loader-spin {
+    animation: none;
+  }
+
   /* Calculating-screen confetti — hide entirely when reduced motion is requested */
   .quiz-calculating-confetti-overlay {
     display: none !important;
   }
+}
+
+@keyframes quiz-mascot-loader-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.quiz-mascot-loader-spin {
+  animation: quiz-mascot-loader-spin 2.2s linear infinite;
+  transform-origin: center center;
 }
 
 /* Confetti burst on “Preparing your plan” completion — disabled via block above when reduced motion */

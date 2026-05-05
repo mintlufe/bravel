@@ -46,13 +46,15 @@ export function TeaserContinueScreen({
   /** Referral: tight gap after progress only (`153:4461`). */
   sheetTopSpacing?: "compact" | "loose";
 }) {
-  const sheetTop = sheetTopSpacing === "compact" ? "mt-2" : "mt-10";
+  /** Space between blue hero and white sheet — loose 24px (`gap-6`), compact 8px (`gap-2`). */
+  const heroSheetGap =
+    sheetTopSpacing === "compact" ? "gap-2" : "gap-6";
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-hidden">
+    <div
+      className={`flex min-h-0 min-w-0 flex-1 flex-col ${heroSheetGap} overflow-x-hidden overflow-y-hidden`}
+    >
       <div className="relative z-[1] flex shrink-0 flex-col gap-2">{hero}</div>
-      <div
-        className={`relative z-[1] flex min-h-0 min-w-0 flex-1 flex-col ${sheetTop}`}
-      >
+      <div className="relative z-[1] flex min-h-0 min-w-0 flex-1 flex-col">
         <div className="flex w-full shrink-0 justify-center px-10">
           <div className="h-4 w-full rounded-t-2xl bg-[#70cfff]" />
         </div>
@@ -61,7 +63,7 @@ export function TeaserContinueScreen({
             <div className="flex min-h-full min-w-0 flex-col">
               <div className="flex w-full flex-1 flex-col p-4">{children}</div>
               <div
-                className="sticky bottom-0 z-10 shrink-0 bg-[rgba(25,26,31,0.01)] px-4 pt-3 backdrop-blur-[6px]"
+                className="sticky bottom-0 z-10 shrink-0 px-4 pt-3"
                 style={{
                   paddingBottom: "max(1rem, env(safe-area-inset-bottom, 0px))",
                 }}
@@ -371,9 +373,9 @@ export function CalculatingScreen({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-white px-4 pb-4 pt-4">
-      <div className="flex shrink-0 flex-col gap-6">
+      <div className="flex shrink-0 flex-col">
         <div className="shrink-0">{progressBar}</div>
-        <div className="flex flex-col items-center gap-6">
+        <div className="mt-[24px] flex flex-col items-center gap-6">
           <div className="relative size-[200px] shrink-0">
           <svg
             width="200"
@@ -485,7 +487,7 @@ export function CalculatingScreen({
         </ul>
         </div>
       </div>
-      <div className="mt-auto flex flex-col items-center gap-4 pt-10">
+      <div className="mt-auto flex flex-col items-center gap-4 pt-6">
         <div
           className="flex h-[180px] w-full touch-pan-y select-none flex-col overflow-hidden rounded-[20px] bg-[#f5f6fa] p-4"
           role="region"
@@ -831,7 +833,7 @@ export function EmailCaptureScreen({
                     {displayErrorMessage}
                   </p>
                 ) : null}
-                <p className="text-center text-[12px] font-normal leading-[18px] tracking-[-0.096px] text-[#7a8399]">
+                <p className="text-center text-[14px] font-normal leading-[20px] tracking-[-0.112px] text-[#7a8399]">
                   By continuing, you agree to our{" "}
                   <span className="font-semibold">Terms of Use</span> and{" "}
                   <span className="font-semibold">Privacy Policy</span>.
@@ -848,6 +850,102 @@ export function EmailCaptureScreen({
         </SheetBlackButton>
       </ButtonWrapper>
     </>
+  );
+}
+
+/** Shown after email capture — marketing opt-in (both choices advance). */
+export function EmailPermissionScreen({
+  onOptIn,
+  onOptOut,
+}: {
+  onOptIn: () => void;
+  onOptOut: () => void;
+}) {
+  return (
+    <>
+      <div
+        className={`flex min-h-0 flex-1 flex-col scroll-pb-32 overflow-y-auto bg-white px-4 ${quizStickyScrollGapBottom} pt-0`}
+      >
+        <div className="flex min-h-0 flex-1 flex-col justify-center">
+          <div className="flex w-full shrink-0 flex-col items-center gap-6 py-6">
+            <div className="flex shrink-0 justify-center">
+              <Mascot eyes="happy" />
+            </div>
+            <div className="mx-auto flex w-full max-w-[361px] shrink-0 flex-col items-center gap-6">
+              <p className="text-center text-[28px] font-semibold leading-8 tracking-[-1.4px] text-[#22262f]">
+                Do you want to receive emails with tips and plan updates?
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        aria-hidden
+        className="pointer-events-none shrink-0"
+        style={{
+          height:
+            "calc(3.5rem + 0.75rem + 2.75rem + max(1rem, env(safe-area-inset-bottom, 0px)))",
+        }}
+      />
+      <ButtonWrapper>
+        <div className="flex w-full flex-col gap-3">
+          <SheetBlackButton onClick={onOptIn}>Sure, I&apos;m in!</SheetBlackButton>
+          <button
+            type="button"
+            onClick={onOptOut}
+            className="quiz-transition-interactive w-full border-0 bg-transparent px-0 py-1 text-center text-[16px] !font-semibold leading-[22px] tracking-[-0.32px] text-[#7a8399] [font-synthesis-weight:none] antialiased hover:text-[#464e62] active:text-[#464e62]"
+          >
+            I don&apos;t want to receive tips or updates
+          </button>
+        </div>
+      </ButtonWrapper>
+    </>
+  );
+}
+
+const QUIZ_SUCCESS_SFX_SRC = "/quiz-assets/quiz-success-magic.mp3";
+/** After confetti burst, brief beat before referral. */
+const QUIZ_SUCCESS_NAV_AFTER_CONFETTI_MS = 720;
+
+/** Final celebration — SFX + confetti, then `onComplete` (e.g. referral). */
+export function QuizSuccessScreen({
+  onComplete,
+}: {
+  onComplete: () => void;
+}) {
+  const [confetti, setConfetti] = useState(true);
+
+  const dismissConfetti = useCallback(() => {
+    setConfetti(false);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+    const audio = new Audio(QUIZ_SUCCESS_SFX_SRC);
+    audio.volume = 0.88;
+    void audio.play().catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const t = window.setTimeout(
+      onComplete,
+      CONFETTI_BURST_MS + QUIZ_SUCCESS_NAV_AFTER_CONFETTI_MS,
+    );
+    return () => window.clearTimeout(t);
+  }, [onComplete]);
+
+  return (
+    <div className="relative flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-10">
+      <p className="relative z-[1] text-center text-[32px] font-semibold leading-9 tracking-[-1.6px] text-white">
+        You&apos;re all set!
+      </p>
+      {confetti ? (
+        <CalculatingConfettiBurst onConsumed={dismissConfetti} />
+      ) : null}
+    </div>
   );
 }
 
@@ -885,7 +983,7 @@ export function TeaserPeopleContent({
           priority
         />
       </div>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         <div className="flex items-end justify-between gap-3">
           <div className="flex min-w-0 flex-1 items-end gap-2">
             <span className="text-[56px] font-semibold leading-none tracking-[-2.8px] text-[#22262f]">
