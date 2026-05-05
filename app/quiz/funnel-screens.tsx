@@ -380,7 +380,7 @@ export function CalculatingScreen({
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-white px-4 pb-4 pt-4">
       <div className="flex shrink-0 flex-col">
         <div className="shrink-0">{progressBar}</div>
-        <div className="mt-[24px] flex flex-col items-center gap-6">
+        <div className="flex flex-col items-center gap-6">
           <div className="relative size-[200px] shrink-0">
           <svg
             width="200"
@@ -1058,12 +1058,12 @@ export function TeaserLoopContent() {
         <p className="pb-2 text-center text-[16px] font-semibold leading-[18px] tracking-[-0.32px] text-white">
           Why Bravel works
         </p>
-        <div className="relative h-[278px] w-full overflow-hidden rounded-2xl border border-[#ebeef5] bg-[#f3fef6]">
+        <div className="relative h-[254px] w-full overflow-hidden rounded-2xl border border-[#ebeef5] bg-[#f3fef6]">
           <Image
             src={quizAssets.figmaTeaserLoopIllustration}
             alt=""
             fill
-            className="object-cover object-center"
+            className="object-contain object-center"
             sizes="(max-width: 480px) min(100vw - 80px, 361px), 361px"
             priority
             unoptimized
